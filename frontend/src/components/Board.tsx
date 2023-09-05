@@ -38,6 +38,11 @@ function Board() {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
+
+  const [playerTurn, setPlayterTurn] = useState<1 | 2 | null>(null);
+
+  console.log(playerTurn);
+
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardWith, setBoardWith] = useState<number | null>(null);
 
@@ -46,6 +51,7 @@ function Board() {
       return;
     }
     setBoardWith(boardRef.current?.offsetWidth);
+    setPlayterTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
   }, []);
 
   useEffect(() => {
@@ -77,6 +83,9 @@ function Board() {
 
   function cellClickHandler(rowIndex: number, cellIndex: number) {
     if (!selectedPiece) {
+      if (piecesPositions[rowIndex][cellIndex] !== 0) {
+        pieceClickHandler(rowIndex, cellIndex);
+      }
       return;
     }
 
@@ -97,6 +106,10 @@ function Board() {
     }
 
     setSelectedCell(() => [rowIndex, cellIndex]);
+  }
+
+  function pieceClickHandler(rowIndex: number, cellIndex: number) {
+    setSelectedPiece(() => [rowIndex, cellIndex]);
   }
 
   return (
@@ -120,7 +133,7 @@ function Board() {
                   <Piece
                     player={piecesPositions[rowIndex][cellIndex] as 1 | 2}
                     setSelectedPiece={() =>
-                      setSelectedPiece(() => [rowIndex, cellIndex])
+                      pieceClickHandler(rowIndex, cellIndex)
                     }
                   />
                 )}
