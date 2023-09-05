@@ -1,22 +1,19 @@
-import { NUMBER_OF_CELLS_IN_ROW } from "../utils/constants";
+import whitePieceImg from "../assets/white-piece.png";
+import redPieceImg from "../assets/red-piece.png";
 
 type PieceType = {
-  boardWith: number;
-  hasPiece: boolean;
-  isAcceptPiece: boolean;
+  player: 1 | 2;
+  setSelectedPiece: () => void;
 };
-
-function Cell({ boardWith, hasPiece, isAcceptPiece }: PieceType) {
-  const cellSize = {
-    width: `${boardWith / NUMBER_OF_CELLS_IN_ROW}px`,
-    height: `${boardWith / NUMBER_OF_CELLS_IN_ROW}px`,
-  };
+function Piece({ player, setSelectedPiece }: PieceType) {
   return (
-    <div
-      style={cellSize}
-      className={`${isAcceptPiece ? "bg-green-600" : "bg-white"}`}
-    ></div>
+    <div onClick={setSelectedPiece}>
+      <img
+        src={player === 1 ? redPieceImg : whitePieceImg}
+        alt={player === 1 ? "red piece" : "white piece"}
+      />
+    </div>
   );
 }
 
-export default Cell;
+export default Piece;
