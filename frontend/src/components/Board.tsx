@@ -8,6 +8,7 @@ import {
 } from "../utils/constants";
 import Piece from "./Piece";
 import GameMove from "../utils/functions";
+import TurnSquare from "./TurnSquare";
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
@@ -96,10 +97,8 @@ function Board() {
   }
 
   function cellClickHandler(rowIndex: number, cellIndex: number) {
-    if (!selectedPiece) {
-      if (piecesPositions[rowIndex][cellIndex] !== 0) {
-        pieceClickHandler(rowIndex, cellIndex);
-      }
+    if (!selectedPiece || piecesPositions[rowIndex][cellIndex] !== 0) {
+      pieceClickHandler(rowIndex, cellIndex);
       return;
     }
 
@@ -130,27 +129,12 @@ function Board() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-center gap-2 mt-10">
-        <div
-          className={`w-20 h-20 border-2 ${
-            playerTurn === 1 ? "border-green-500" : "border-black"
-          }`}
-        >
-          <img src={redPieceImg} alt={"red piece"} />
-        </div>
-        <div
-          className={`w-20 h-20 border-2 ${
-            playerTurn === 2 ? "border-green-500" : "border-black"
-          }`}
-        >
-          <img src={whitePieceImg} alt={"white piece"} />
-        </div>
+    <div className="h-screen bg-[#c6e2e9] p-4">
+      <div className="flex items-center justify-center gap-4">
+        <TurnSquare isActive={playerTurn === 1} player={1} />
+        <TurnSquare isActive={playerTurn === 2} player={2} />
       </div>
-      <div
-        ref={boardRef}
-        className="max-w-[600px] h-[600px] mx-auto mt-10 border border-solid border-black"
-      >
+      <div ref={boardRef} className="max-w-[600px] h-[600px] mx-auto mt-10">
         {new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => (
           <div key={rowIndex} className="flex items-center justify-center">
             {boardWith !== null &&
@@ -164,6 +148,12 @@ function Board() {
                       : cellIndex % 2 !== 0
                   }
                   setSelectedCell={() => cellClickHandler(rowIndex, cellIndex)}
+                  isSelected={
+                    selectedPiece
+                      ? selectedPiece[0] === rowIndex &&
+                        selectedPiece[1] === cellIndex
+                      : false
+                  }
                 >
                   {piecesPositions[rowIndex][cellIndex] !== 0 && (
                     <Piece

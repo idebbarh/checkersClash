@@ -7,12 +7,12 @@ type PieceType = {
 };
 function Piece({ player, setSelectedPiece }: PieceType) {
   return (
-    <div onClick={setSelectedPiece}>
-      <img
-        src={player === 1 ? redPieceImg : whitePieceImg}
-        alt={player === 1 ? "red piece" : "white piece"}
-      />
-    </div>
+    <div
+      onClick={setSelectedPiece}
+      className={`w-4/5 h-4/5 rounded-full ${
+        player === 1 ? "bg-player-one-piece-color" : "bg-player-two-piece-color"
+      } border-2 border-solid border-piece-border`}
+    ></div>
   );
 }
 
