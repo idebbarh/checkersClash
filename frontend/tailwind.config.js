@@ -11,6 +11,7 @@ export default {
         "piece-border": "#373e40",
         "main-green": "#00cfa8",
       },
+      boxShadow: { boardShadow: "0 0 20px rgba(255, 255, 255, 0.7)" },
     },
   },
   plugins: [],

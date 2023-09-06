@@ -35,16 +35,21 @@ function Board() {
   const [piecesPositions, setPiecesPositions] = useState<(0 | 1 | 2)[][]>(
     getPiecesPositions()
   );
+
   const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(
     null
   );
+
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
 
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
 
+  const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
+
   const boardRef = useRef<HTMLDivElement>(null);
+
   const [boardWith, setBoardWith] = useState<number | null>(null);
 
   useEffect(() => {
@@ -58,6 +63,12 @@ function Board() {
   useEffect(() => {
     movePiece();
   }, [selectedCell, selectedPiece]);
+
+  function clearBoardSelections() {
+    setSelectedCell(null);
+    setSelectedPiece(null);
+    setPossibleMoves(null);
+  }
 
   function movePiece(): void {
     if (!selectedPiece || !selectedCell) {
@@ -81,6 +92,7 @@ function Board() {
     clearBoardSelections();
     changeTurn();
   }
+
   function changeTurn(): void {
     if (!playerTurn) {
       return;
@@ -90,10 +102,6 @@ function Board() {
       2: 1,
     };
     setPlayerTurn(() => turnMatch[playerTurn]);
-  }
-  function clearBoardSelections() {
-    setSelectedCell(null);
-    setSelectedPiece(null);
   }
 
   function cellClickHandler(rowIndex: number, cellIndex: number) {
@@ -107,14 +115,14 @@ function Board() {
     const pieceValue = piecesPositions[pieceRow][pieceCol];
     const cellPos = [rowIndex, cellIndex] as [number, number];
 
-    const gameMove = new GameMove(
+    const isValidMove = GameMove.isValidMove(
       cellValue,
       pieceValue,
       cellPos,
       selectedPiece
     );
 
-    if (!gameMove.isValidMove()) {
+    if (!isValidMove) {
       return;
     }
 
@@ -125,6 +133,15 @@ function Board() {
     if (piecesPositions[rowIndex][cellIndex] !== playerTurn) {
       return;
     }
+
+    const piecePos: [number, number] = [rowIndex, cellIndex];
+    const pieceValue = piecesPositions[rowIndex][cellIndex];
+    const moves = GameMove.pieceAvailableMoves(
+      piecePos,
+      pieceValue,
+      piecesPositions
+    );
+    setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
   }
 
@@ -134,7 +151,10 @@ function Board() {
         <TurnSquare isActive={playerTurn === 1} player={1} />
         <TurnSquare isActive={playerTurn === 2} player={2} />
       </div>
-      <div ref={boardRef} className="max-w-[600px] h-[600px] mx-auto mt-10">
+      <div
+        ref={boardRef}
+        className="max-w-[600px] h-[600px] mx-auto mt-10 rounded-3xl overflow-hidden border-2 border-solid border-white shadow-boardShadow"
+      >
         {new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => (
           <div key={rowIndex} className="flex items-center justify-center">
             {boardWith !== null &&
