@@ -38,7 +38,7 @@ function Cell({
 
 function SelectedPieceOverlay() {
   return (
-    <div className="z-[-1] absolute w-full h-full bottom-0 left-0 bg-main-green opacity-60"></div>
+    <div className="z-[-1] absolute w-full h-full bottom-0 left-0 bg-board-green opacity-60 animate-pulse"></div>
   );
 }
 

@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import whitePieceImg from "../assets/white-piece.png";
-import redPieceImg from "../assets/red-piece.png";
 import Cell from "./Cell";
 import {
   NUMBER_OF_CELLS_IN_ROW,
@@ -9,6 +7,7 @@ import {
 import Piece from "./Piece";
 import GameMove from "../utils/functions";
 import TurnSquare from "./TurnSquare";
+import MoveMarker from "./MoveMarker";
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
@@ -144,6 +143,7 @@ function Board() {
     setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
   }
+  console.log(possibleMoves);
 
   return (
     <div className="h-screen bg-[#c6e2e9] p-4">
@@ -183,6 +183,9 @@ function Board() {
                       }
                     />
                   )}
+                  {possibleMoves?.some(
+                    ([row, col]) => row === rowIndex && col === cellIndex
+                  ) && <MoveMarker />}
                 </Cell>
               ))}
           </div>
