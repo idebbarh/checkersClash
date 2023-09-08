@@ -47,6 +47,8 @@ function Board() {
 
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
 
+  const [pieceToEat, setPieceToEat] = useState<[number, number] | null>(null);
+
   const boardRef = useRef<HTMLDivElement>(null);
 
   const [boardWith, setBoardWith] = useState<number | null>(null);
@@ -67,6 +69,7 @@ function Board() {
     setSelectedCell(null);
     setSelectedPiece(null);
     setPossibleMoves(null);
+    setPieceToEat(null);
   }
 
   function movePiece(): void {
@@ -88,6 +91,20 @@ function Board() {
         });
       })
     );
+
+    if (pieceToEat) {
+      const [pieceToEatRow, pieceToEatCol] = pieceToEat;
+      setPiecesPositions((prevState) =>
+        prevState.map((row, rowIndex) => {
+          return row.map((colValue, colIndex) => {
+            return rowIndex === pieceToEatRow && colIndex === pieceToEatCol
+              ? 0
+              : colValue;
+          });
+        })
+      );
+    }
+
     clearBoardSelections();
     changeTurn();
   }
@@ -112,17 +129,23 @@ function Board() {
     const [pieceRow, pieceCol] = selectedPiece;
     const cellValue = piecesPositions[rowIndex][cellIndex];
     const pieceValue = piecesPositions[pieceRow][pieceCol];
-    const cellPos = [rowIndex, cellIndex] as [number, number];
+    const cellPos: [number, number] = [rowIndex, cellIndex];
 
-    const isValidMove = GameMove.isValidMove(
+    const [isValidMove, pieceToEatPosition] = GameMove.isValidMove(
       cellValue,
       pieceValue,
       cellPos,
-      selectedPiece
+      selectedPiece,
+      piecesPositions
     );
 
+    console.log([isValidMove, pieceToEatPosition]);
     if (!isValidMove) {
       return;
+    }
+
+    if (pieceToEatPosition !== null) {
+      setPieceToEat(pieceToEatPosition);
     }
 
     setSelectedCell(() => [rowIndex, cellIndex]);
@@ -143,7 +166,6 @@ function Board() {
     setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
   }
-  console.log(possibleMoves);
 
   return (
     <div className="h-screen bg-[#c6e2e9] p-4">
