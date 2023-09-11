@@ -39,15 +39,9 @@ function Board() {
     null
   );
 
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
-    null
-  );
-
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
 
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
-
-  const [pieceToEat, setPieceToEat] = useState<[number, number] | null>(null);
 
   const boardRef = useRef<HTMLDivElement>(null);
 
@@ -61,19 +55,16 @@ function Board() {
     setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
   }, []);
 
-  useEffect(() => {
-    movePiece();
-  }, [selectedCell, selectedPiece]);
-
   function clearBoardSelections() {
-    setSelectedCell(null);
     setSelectedPiece(null);
     setPossibleMoves(null);
-    setPieceToEat(null);
   }
 
-  function movePiece(): void {
-    if (!selectedPiece || !selectedCell) {
+  function movePiece(
+    selectedCell: [number, number],
+    pieceToEat: [number, number] | null
+  ): void {
+    if (!selectedPiece) {
       return;
     }
 
@@ -109,17 +100,6 @@ function Board() {
     changeTurn();
   }
 
-  function changeTurn(): void {
-    if (!playerTurn) {
-      return;
-    }
-    const turnMatch: { 1: 2; 2: 1 } = {
-      1: 2,
-      2: 1,
-    };
-    setPlayerTurn(() => turnMatch[playerTurn]);
-  }
-
   function cellClickHandler(rowIndex: number, cellIndex: number) {
     if (!selectedPiece || piecesPositions[rowIndex][cellIndex] !== 0) {
       pieceClickHandler(rowIndex, cellIndex);
@@ -139,16 +119,11 @@ function Board() {
       piecesPositions
     );
 
-    console.log([isValidMove, pieceToEatPosition]);
     if (!isValidMove) {
       return;
     }
 
-    if (pieceToEatPosition !== null) {
-      setPieceToEat(pieceToEatPosition);
-    }
-
-    setSelectedCell(() => [rowIndex, cellIndex]);
+    movePiece([rowIndex, cellIndex], pieceToEatPosition);
   }
 
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
@@ -165,6 +140,13 @@ function Board() {
     );
     setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
+  }
+
+  function changeTurn(): void {
+    if (!playerTurn) {
+      return;
+    }
+    setPlayerTurn(() => (playerTurn === 1 ? 2 : 1));
   }
 
   return (
