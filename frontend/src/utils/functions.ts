@@ -81,6 +81,34 @@ class GameMove {
 
     return [isValidNormalMove || isValidEatMoveComplete, pieceToEatPosition];
   }
+  public static isValidToSwitchPlayer(
+    piecePos: [number, number],
+    pieceValue: 0 | 1 | 2,
+    piecesPositions: (0 | 1 | 2)[][]
+  ): boolean {
+    const playerOp = pieceValue === 1 ? 2 : 1;
+    const [pieceRow, pieceCol] = piecePos;
+
+    const isEmptyNext = (row: number, col: number) =>
+      piecesPositions[row][col] === 0;
+
+    try {
+      const res =
+        pieceValue === 1
+          ? (piecesPositions[pieceRow + 1][pieceCol + 1] === playerOp &&
+              isEmptyNext(pieceRow + 2, pieceCol + 2)) ||
+            (piecesPositions[pieceRow + 1][pieceCol - 1] === playerOp &&
+              isEmptyNext(pieceRow + 2, pieceCol - 2))
+          : (piecesPositions[pieceRow - 1][pieceCol + 1] === playerOp &&
+              isEmptyNext(pieceRow - 2, pieceCol + 2)) ||
+            (piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp &&
+              isEmptyNext(pieceRow - 2, pieceCol - 2));
+
+      return !res;
+    } catch (e) {
+      return true;
+    }
+  }
 
   public static pieceAvailableMoves(
     piecePos: [number, number],

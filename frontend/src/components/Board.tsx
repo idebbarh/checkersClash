@@ -95,9 +95,22 @@ function Board() {
         })
       );
     }
+    const piecePos: [number, number] = [cellRow, cellCol];
+    const pieceValue = piecesPositions[pieceRow][pieceCol];
+
+    const isValidToSwitch = GameMove.isValidToSwitchPlayer(
+      piecePos,
+      pieceValue,
+      piecesPositions
+    );
 
     clearBoardSelections();
-    changeTurn();
+
+    if (isValidToSwitch || pieceToEat === null) {
+      changeTurn();
+    } else {
+      console.log("keep playing");
+    }
   }
 
   function cellClickHandler(rowIndex: number, cellIndex: number) {
