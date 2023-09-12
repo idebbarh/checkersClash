@@ -117,6 +117,7 @@ class GameMove {
   ): number[][] {
     const [pieceRow, pieceCol] = piecePos;
     const res: number[][] = [];
+    const playerOp = pieceValue === 1 ? 2 : 1;
     if (pieceValue === 1) {
       if (
         pieceRow < piecesPositions.length - 1 &&
@@ -132,6 +133,23 @@ class GameMove {
       ) {
         res.push([pieceRow + 1, pieceCol - 1]);
       }
+      if (
+        pieceRow < piecesPositions.length - 2 &&
+        pieceCol < piecesPositions[0].length - 2 &&
+        piecesPositions[pieceRow + 2][pieceCol + 2] === 0 &&
+        piecesPositions[pieceRow + 1][pieceCol + 1] === playerOp
+      ) {
+        res.push([pieceRow + 2, pieceCol + 2]);
+      }
+
+      if (
+        pieceRow < piecesPositions.length - 2 &&
+        pieceCol > 1 &&
+        piecesPositions[pieceRow + 2][pieceCol - 2] === 0 &&
+        piecesPositions[pieceRow + 1][pieceCol - 1] === playerOp
+      ) {
+        res.push([pieceRow + 2, pieceCol - 2]);
+      }
     } else {
       if (
         pieceRow > 0 &&
@@ -146,6 +164,24 @@ class GameMove {
         piecesPositions[pieceRow - 1][pieceCol - 1] === 0
       ) {
         res.push([pieceRow - 1, pieceCol - 1]);
+      }
+
+      if (
+        pieceRow > 1 &&
+        pieceCol < piecesPositions[0].length - 2 &&
+        piecesPositions[pieceRow - 2][pieceCol + 2] === 0 &&
+        piecesPositions[pieceRow - 1][pieceCol + 1] === playerOp
+      ) {
+        res.push([pieceRow - 2, pieceCol + 2]);
+      }
+
+      if (
+        pieceRow > 1 &&
+        pieceCol > 1 &&
+        piecesPositions[pieceRow - 2][pieceCol - 2] === 0 &&
+        piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp
+      ) {
+        res.push([pieceRow - 2, pieceCol - 2]);
       }
     }
     return res;
