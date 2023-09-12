@@ -43,9 +43,11 @@ function Board() {
 
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
 
+  const [boardWith, setBoardWith] = useState<number | null>(null);
+
   const boardRef = useRef<HTMLDivElement>(null);
 
-  const [boardWith, setBoardWith] = useState<number | null>(null);
+  const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
 
   useEffect(() => {
     if (!boardRef.current) {
@@ -54,6 +56,10 @@ function Board() {
     setBoardWith(boardRef.current?.offsetWidth);
     setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
   }, []);
+
+  useEffect(() => {
+    piecesPositionsRef.current = piecesPositions;
+  }, [piecesPositions]);
 
   function clearBoardSelections() {
     setSelectedPiece(null);
@@ -71,13 +77,13 @@ function Board() {
     const [pieceRow, pieceCol] = selectedPiece;
     const [cellRow, cellCol] = selectedCell;
 
-    setPiecesPositions(() =>
+    setPiecesPositions((prevState) =>
       piecesPositions.map((row, rowIndex) => {
         return row.map((colValue, colIndex) => {
           return rowIndex === pieceRow && colIndex === pieceCol
             ? 0
             : rowIndex === cellRow && colIndex === cellCol
-            ? piecesPositions[pieceRow][pieceCol]
+            ? prevState[pieceRow][pieceCol]
             : colValue;
         });
       })
@@ -110,6 +116,9 @@ function Board() {
       changeTurn();
     } else {
       console.log("keep playing");
+      setTimeout(() => {
+        pieceClickHandler(cellRow, cellCol);
+      }, 0);
     }
   }
 
@@ -139,17 +148,18 @@ function Board() {
     movePiece([rowIndex, cellIndex], pieceToEatPosition);
   }
 
+  //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
-    if (piecesPositions[rowIndex][cellIndex] !== playerTurn) {
+    if (piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn) {
       return;
     }
 
     const piecePos: [number, number] = [rowIndex, cellIndex];
-    const pieceValue = piecesPositions[rowIndex][cellIndex];
+    const pieceValue = piecesPositionsRef.current[rowIndex][cellIndex];
     const moves = GameMove.pieceAvailableMoves(
       piecePos,
       pieceValue,
-      piecesPositions
+      piecesPositionsRef.current
     );
     setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
