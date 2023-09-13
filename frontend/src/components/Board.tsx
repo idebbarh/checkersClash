@@ -70,37 +70,27 @@ function Board() {
     selectedCell: [number, number],
     pieceToEat: [number, number] | null
   ): void {
-    if (!selectedPiece) {
+    if (!selectedPiece || !playerTurn) {
       return;
     }
 
     const [pieceRow, pieceCol] = selectedPiece;
     const [cellRow, cellCol] = selectedCell;
 
-    setPiecesPositions((prevState) =>
-      piecesPositions.map((row, rowIndex) => {
-        return row.map((colValue, colIndex) => {
-          return rowIndex === pieceRow && colIndex === pieceCol
-            ? 0
-            : rowIndex === cellRow && colIndex === cellCol
-            ? prevState[pieceRow][pieceCol]
-            : colValue;
-        });
-      })
-    );
+    setPiecesPositions((prevState) => {
+      const newArr = [...prevState];
+      //remove the piece from its old position
+      newArr[pieceRow][pieceCol] = 0;
+      //set the new piece its new position
+      newArr[cellRow][cellCol] = playerTurn;
+      //if there a taken piece remove it.
+      if (pieceToEat) {
+        const [pieceToEatRow, pieceToEatCol] = pieceToEat;
+        newArr[pieceToEatRow][pieceToEatCol] = 0;
+      }
+      return newArr;
+    });
 
-    if (pieceToEat) {
-      const [pieceToEatRow, pieceToEatCol] = pieceToEat;
-      setPiecesPositions((prevState) =>
-        prevState.map((row, rowIndex) => {
-          return row.map((colValue, colIndex) => {
-            return rowIndex === pieceToEatRow && colIndex === pieceToEatCol
-              ? 0
-              : colValue;
-          });
-        })
-      );
-    }
     const piecePos: [number, number] = [cellRow, cellCol];
     const pieceValue = piecesPositions[pieceRow][pieceCol];
 
