@@ -4,13 +4,13 @@ class GameMove {
     pieceValue: 0 | 1 | 2,
     cellPos: [number, number],
     piecePos: [number, number],
-    piecesPositions: (0 | 1 | 2)[][]
+    piecesPositions: (0 | 1 | 2)[][],
   ): [boolean, [number, number] | null] {
     const [first, second] = GameMove.isValidMoveByPlayerNumber(
       pieceValue,
       cellPos,
       piecePos,
-      piecesPositions
+      piecesPositions,
     );
     return [cellValue === 0 && first, second];
   }
@@ -19,7 +19,7 @@ class GameMove {
     pieceValue: 0 | 1 | 2,
     cellPos: [number, number],
     piecePos: [number, number],
-    piecesPositions: (0 | 1 | 2)[][]
+    piecesPositions: (0 | 1 | 2)[][],
   ): [boolean, [number, number] | null] {
     const [cellRow, cellCol] = cellPos;
     const [pieceRow, pieceCol] = piecePos;
@@ -84,7 +84,7 @@ class GameMove {
   public static isValidToSwitchPlayer(
     piecePos: [number, number],
     pieceValue: 0 | 1 | 2,
-    piecesPositions: (0 | 1 | 2)[][]
+    piecesPositions: (0 | 1 | 2)[][],
   ): boolean {
     const playerOp = pieceValue === 1 ? 2 : 1;
     const [pieceRow, pieceCol] = piecePos;
@@ -104,6 +104,13 @@ class GameMove {
             (piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp &&
               isEmptyNext(pieceRow - 2, pieceCol - 2));
 
+      /* console.log( */
+      /*   pieceValue, */
+      /*   playerOp, */
+      /*   piecesPositions[pieceRow + 1][pieceCol - 1], */
+      /*   isEmptyNext(pieceRow + 2, pieceCol - 2), */
+      /* ); */
+
       return !res;
     } catch (e) {
       return true;
@@ -113,7 +120,7 @@ class GameMove {
   public static pieceAvailableMoves(
     piecePos: [number, number],
     pieceValue: 0 | 1 | 2,
-    piecesPositions: (0 | 1 | 2)[][]
+    piecesPositions: (0 | 1 | 2)[][],
   ): number[][] {
     const [pieceRow, pieceCol] = piecePos;
     const res: number[][] = [];

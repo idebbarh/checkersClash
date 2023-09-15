@@ -32,11 +32,11 @@ function getPiecesPositions(): (0 | 1 | 2)[][] {
 
 function Board() {
   const [piecesPositions, setPiecesPositions] = useState<(0 | 1 | 2)[][]>(
-    getPiecesPositions()
+    getPiecesPositions(),
   );
 
   const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(
-    null
+    null,
   );
 
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
@@ -68,7 +68,7 @@ function Board() {
 
   function movePiece(
     selectedCell: [number, number],
-    pieceToEat: [number, number] | null
+    pieceToEat: [number, number] | null,
   ): void {
     if (!selectedPiece || !playerTurn) {
       return;
@@ -76,6 +76,8 @@ function Board() {
 
     const [pieceRow, pieceCol] = selectedPiece;
     const [cellRow, cellCol] = selectedCell;
+    const piecePos: [number, number] = [cellRow, cellCol];
+    const pieceValue = piecesPositions[pieceRow][pieceCol];
 
     setPiecesPositions((prevState) => {
       const newArr = [...prevState];
@@ -91,13 +93,10 @@ function Board() {
       return newArr;
     });
 
-    const piecePos: [number, number] = [cellRow, cellCol];
-    const pieceValue = piecesPositions[pieceRow][pieceCol];
-
     const isValidToSwitch = GameMove.isValidToSwitchPlayer(
       piecePos,
       pieceValue,
-      piecesPositions
+      piecesPositions,
     );
 
     clearBoardSelections();
@@ -128,7 +127,7 @@ function Board() {
       pieceValue,
       cellPos,
       selectedPiece,
-      piecesPositions
+      piecesPositions,
     );
 
     if (!isValidMove) {
@@ -149,7 +148,7 @@ function Board() {
     const moves = GameMove.pieceAvailableMoves(
       piecePos,
       pieceValue,
-      piecesPositionsRef.current
+      piecesPositionsRef.current,
     );
     setPossibleMoves(() => moves);
     setSelectedPiece(() => [rowIndex, cellIndex]);
@@ -201,7 +200,7 @@ function Board() {
                     />
                   )}
                   {possibleMoves?.some(
-                    ([row, col]) => row === rowIndex && col === cellIndex
+                    ([row, col]) => row === rowIndex && col === cellIndex,
                   ) && <MoveMarker />}
                 </Cell>
               ))}
