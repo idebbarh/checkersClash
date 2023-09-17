@@ -20,56 +20,74 @@ function TurnSquare({
     </div>
   );
 }
-
+const initSidesWidth = [80, 90, 90, 100];
 function Timer() {
   //bottom->left->top->right
-  const [sidesWidth, setSidesWidth] = useState<number[]>([100, 100, 100, 100]);
+  const [sidesWidth, setSidesWidth] = useState<number[]>(initSidesWidth);
   const sideIndexRef = useRef<number>(0);
+  const intervalRef = useRef<null | number>(null);
 
   useEffect(() => {
-    if (sidesWidth[sideIndexRef.current] <= 0) {
+    if (sidesWidth[sideIndexRef.current] < 0) {
+      if (
+        sideIndexRef.current === sidesWidth.length - 1 &&
+        intervalRef.current
+      ) {
+        //do something here
+        clearInterval(intervalRef.current);
+        return;
+      }
       sideIndexRef.current += 1;
     }
   }, [sidesWidth]);
 
   useEffect(() => {
     const interval = setInterval(() => {
+      console.log("interval");
       setSidesWidth((prevState) => {
         return prevState.map((sideWidth, index) =>
           index === sideIndexRef.current
-            ? sideWidth - 100 / (sidePortion * 10)
+            ? sideWidth -
+              initSidesWidth[sideIndexRef.current] / (sidePortion * 10)
             : sideWidth,
         );
       });
+      intervalRef.current = interval;
     }, 100);
-    return () => clearInterval(interval);
+    return () =>
+      intervalRef.current ? clearInterval(intervalRef.current) : undefined;
   }, []);
+
   return (
     <div className="absolute w-[calc(100%+20px)] h-[calc(100%+20px)] top-[-10px] left-[-10px]">
+      {/* bottom */}
       <div className="absolute bottom-0 left-0 bg-cell-can-accept-piece-bg w-full h-[10px]">
         <div
-          style={{ width: `${sidesWidth[0]}px` }}
-          className="bg-board-green h-full transition-all duration-300 ease-in-out"
+          style={{ width: `${sidesWidth[0] > 0 ? sidesWidth[0] : 0}%` }}
+          className="absolute bg-board-green h-full transition-all duration-300 ease-in-out left-[10px]"
         />
       </div>
+      {/* left */}
 
       <div className="absolute top-0 left-0 bg-cell-can-accept-piece-bg h-full w-[10px]">
         <div
-          style={{ height: `${sidesWidth[1]}px` }}
-          className="bg-board-green w-full transition-all duration-300 ease-in-out"
+          style={{ height: `${sidesWidth[1] > 0 ? sidesWidth[1] : 0}%` }}
+          className="absolute bg-board-green w-full transition-all duration-300 ease-in-out top-[10px]"
         />
       </div>
+      {/* top */}
 
       <div className="absolute top-0 right-0 bg-cell-can-accept-piece-bg w-full h-[10px]">
         <div
-          style={{ width: `${sidesWidth[2]}px` }}
-          className="absolute bg-board-green h-full right-0 transition-all duration-300 ease-in-out"
+          style={{ width: `${sidesWidth[2] > 0 ? sidesWidth[2] : 0}%` }}
+          className="absolute bg-board-green h-full right-[10px] transition-all duration-300 ease-in-out"
         />
       </div>
+      {/* right */}
 
       <div className="absolute top-0 right-0 bg-cell-can-accept-piece-bg h-full w-[10px]">
         <div
-          style={{ height: `${sidesWidth[3]}px` }}
+          style={{ height: `${sidesWidth[3] > 0 ? sidesWidth[3] : 0}%` }}
           className="absolute bg-board-green w-full bottom-0 transition-all duration-300 ease-in-out"
         />
       </div>
