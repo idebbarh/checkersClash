@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Cell from "./Cell";
 import {
   NUMBER_OF_CELLS_IN_ROW,
@@ -30,23 +30,21 @@ function getPiecesPositions(): (0 | 1 | 2)[][] {
   return board;
 }
 
-function Board() {
+type BoardType = {
+  playerTurn: 1 | 2 | null;
+  setPlayerTurn: React.Dispatch<React.SetStateAction<1 | 2 | null>>;
+};
+
+function Board({ playerTurn, setPlayerTurn }: BoardType) {
   const [piecesPositions, setPiecesPositions] = useState<(0 | 1 | 2)[][]>(
     getPiecesPositions(),
   );
-
   const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(
     null,
   );
-
-  const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
-
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
-
   const [boardWith, setBoardWith] = useState<number | null>(null);
-
   const boardRef = useRef<HTMLDivElement>(null);
-
   const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
 
   useEffect(() => {
@@ -54,7 +52,6 @@ function Board() {
       return;
     }
     setBoardWith(boardRef.current?.offsetWidth);
-    setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
   }, []);
 
   useEffect(() => {
@@ -202,51 +199,44 @@ function Board() {
   }
 
   return (
-    <div className="h-screen bg-[#c6e2e9] p-4">
-      <div className="flex items-center justify-center gap-4">
-        <TurnSquare isActive={playerTurn === 1} player={1} />
-        <TurnSquare isActive={playerTurn === 2} player={2} />
-      </div>
-      <div
-        ref={boardRef}
-        className="max-w-[600px] h-[600px] mx-auto mt-10 rounded-3xl overflow-hidden border-2 border-solid border-white shadow-boardShadow"
-      >
-        {new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => (
-          <div key={rowIndex} className="flex items-center justify-center">
-            {boardWith !== null &&
-              new Array(NUMBER_OF_CELLS_IN_ROW).fill(0).map((_, cellIndex) => (
-                <Cell
-                  boardWith={boardWith}
-                  key={cellIndex}
-                  isAcceptPiece={
-                    rowIndex % 2 === 0
-                      ? cellIndex % 2 === 0
-                      : cellIndex % 2 !== 0
-                  }
-                  setSelectedCell={() => cellClickHandler(rowIndex, cellIndex)}
-                  isSelected={
-                    selectedPiece
-                      ? selectedPiece[0] === rowIndex &&
-                        selectedPiece[1] === cellIndex
-                      : false
-                  }
-                >
-                  {piecesPositions[rowIndex][cellIndex] !== 0 && (
-                    <Piece
-                      player={piecesPositions[rowIndex][cellIndex] as 1 | 2}
-                      setSelectedPiece={() =>
-                        pieceClickHandler(rowIndex, cellIndex)
-                      }
-                    />
-                  )}
-                  {possibleMoves?.some(
-                    ([row, col]) => row === rowIndex && col === cellIndex,
-                  ) && <MoveMarker />}
-                </Cell>
-              ))}
-          </div>
-        ))}
-      </div>
+    <div
+      ref={boardRef}
+      style={{ height: `${boardRef.current?.offsetWidth}px` }}
+      className="max-w-[600px] mx-auto mt-10 rounded-3xl overflow-hidden border-2 border-solid border-white shadow-boardShadow"
+    >
+      {new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => (
+        <div key={rowIndex} className="flex items-center justify-center">
+          {boardWith !== null &&
+            new Array(NUMBER_OF_CELLS_IN_ROW).fill(0).map((_, cellIndex) => (
+              <Cell
+                boardWith={boardWith}
+                key={cellIndex}
+                isAcceptPiece={
+                  rowIndex % 2 === 0 ? cellIndex % 2 === 0 : cellIndex % 2 !== 0
+                }
+                setSelectedCell={() => cellClickHandler(rowIndex, cellIndex)}
+                isSelected={
+                  selectedPiece
+                    ? selectedPiece[0] === rowIndex &&
+                      selectedPiece[1] === cellIndex
+                    : false
+                }
+              >
+                {piecesPositions[rowIndex][cellIndex] !== 0 && (
+                  <Piece
+                    player={piecesPositions[rowIndex][cellIndex] as 1 | 2}
+                    setSelectedPiece={() =>
+                      pieceClickHandler(rowIndex, cellIndex)
+                    }
+                  />
+                )}
+                {possibleMoves?.some(
+                  ([row, col]) => row === rowIndex && col === cellIndex,
+                ) && <MoveMarker />}
+              </Cell>
+            ))}
+        </div>
+      ))}
     </div>
   );
 }

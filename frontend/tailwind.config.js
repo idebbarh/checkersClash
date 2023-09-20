@@ -14,6 +14,7 @@ export default {
       boxShadow: {
         boardShadow: "0 0 20px rgba(255, 255, 255, 0.7)",
         redShadow: "0px 0px 10px rgba(232, 28, 31, 0.7)",
+        playBtnShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
       },
     },
   },
