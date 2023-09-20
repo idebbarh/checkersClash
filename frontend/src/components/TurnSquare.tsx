@@ -59,7 +59,7 @@ function Timer() {
   }, []);
 
   return (
-    <div className="absolute w-[calc(100%+20px)] h-[calc(100%+20px)] top-[-10px] left-[-10px]">
+    <div className="absolute w-[calc(100%+20px)] h-[calc(100%+20px)] top-[-10px] left-[-10px] rounded-xl overflow-hidden">
       {/* bottom */}
       <div className="absolute bottom-0 left-0 bg-cell-can-accept-piece-bg w-full h-[10px]">
         <div

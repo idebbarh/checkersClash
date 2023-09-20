@@ -117,6 +117,14 @@ function Board() {
       return;
     }
 
+    if (
+      !possibleMoves?.some(
+        ([moveRow, moveCol]) => rowIndex === moveRow && cellIndex === moveCol,
+      )
+    ) {
+      return;
+    }
+
     const [pieceRow, pieceCol] = selectedPiece;
     const cellValue = piecesPositions[rowIndex][cellIndex];
     const pieceValue = piecesPositions[pieceRow][pieceCol];
@@ -139,18 +147,50 @@ function Board() {
 
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
+    //check if the selected piece belong to the player who the turn is his turn.
     if (piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn) {
+      return;
+    }
+    //get all the moves that will take a piece.
+    const forceMoves: number[][] = [];
+
+    piecesPositions.forEach((row, rowIndex) => {
+      row.forEach((col, colIndex) => {
+        if (col === playerTurn) {
+          const movesInfo = GameMove.pieceAvailableMoves(
+            [rowIndex, colIndex],
+            playerTurn,
+            piecesPositionsRef.current,
+          );
+          if (movesInfo.eatMoves.length > 0) {
+            forceMoves.push([rowIndex, colIndex]);
+          }
+        }
+      });
+    });
+    //check if there a forceMoves and if the selected piece in the forceMoves.
+
+    if (
+      forceMoves.length &&
+      !forceMoves.some(
+        ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
+      )
+    ) {
       return;
     }
 
     const piecePos: [number, number] = [rowIndex, cellIndex];
-    const pieceValue = piecesPositionsRef.current[rowIndex][cellIndex];
-    const moves = GameMove.pieceAvailableMoves(
+
+    const movesInfo = GameMove.pieceAvailableMoves(
       piecePos,
-      pieceValue,
+      playerTurn,
       piecesPositionsRef.current,
     );
-    setPossibleMoves(() => moves);
+
+    setPossibleMoves(() =>
+      movesInfo.eatMoves.length ? movesInfo.eatMoves : movesInfo.normalMoves,
+    );
+
     setSelectedPiece(() => [rowIndex, cellIndex]);
   }
 

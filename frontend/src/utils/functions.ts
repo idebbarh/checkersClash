@@ -121,9 +121,10 @@ class GameMove {
     piecePos: [number, number],
     pieceValue: 0 | 1 | 2,
     piecesPositions: (0 | 1 | 2)[][],
-  ): number[][] {
+  ): { normalMoves: number[][]; eatMoves: number[][] } {
     const [pieceRow, pieceCol] = piecePos;
-    const res: number[][] = [];
+    const normalMoves: number[][] = [];
+    const eatMoves: number[][] = [];
     const playerOp = pieceValue === 1 ? 2 : 1;
     if (pieceValue === 1) {
       if (
@@ -131,14 +132,14 @@ class GameMove {
         pieceCol < piecesPositions[0].length - 1 &&
         piecesPositions[pieceRow + 1][pieceCol + 1] === 0
       ) {
-        res.push([pieceRow + 1, pieceCol + 1]);
+        normalMoves.push([pieceRow + 1, pieceCol + 1]);
       }
       if (
         pieceRow < piecesPositions.length - 1 &&
         pieceCol > 0 &&
         piecesPositions[pieceRow + 1][pieceCol - 1] === 0
       ) {
-        res.push([pieceRow + 1, pieceCol - 1]);
+        normalMoves.push([pieceRow + 1, pieceCol - 1]);
       }
       if (
         pieceRow < piecesPositions.length - 2 &&
@@ -146,7 +147,7 @@ class GameMove {
         piecesPositions[pieceRow + 2][pieceCol + 2] === 0 &&
         piecesPositions[pieceRow + 1][pieceCol + 1] === playerOp
       ) {
-        res.push([pieceRow + 2, pieceCol + 2]);
+        eatMoves.push([pieceRow + 2, pieceCol + 2]);
       }
 
       if (
@@ -155,7 +156,7 @@ class GameMove {
         piecesPositions[pieceRow + 2][pieceCol - 2] === 0 &&
         piecesPositions[pieceRow + 1][pieceCol - 1] === playerOp
       ) {
-        res.push([pieceRow + 2, pieceCol - 2]);
+        eatMoves.push([pieceRow + 2, pieceCol - 2]);
       }
     } else {
       if (
@@ -163,14 +164,14 @@ class GameMove {
         pieceCol < piecesPositions[0].length - 1 &&
         piecesPositions[pieceRow - 1][pieceCol + 1] === 0
       ) {
-        res.push([pieceRow - 1, pieceCol + 1]);
+        normalMoves.push([pieceRow - 1, pieceCol + 1]);
       }
       if (
         pieceRow > 0 &&
         pieceCol > 0 &&
         piecesPositions[pieceRow - 1][pieceCol - 1] === 0
       ) {
-        res.push([pieceRow - 1, pieceCol - 1]);
+        normalMoves.push([pieceRow - 1, pieceCol - 1]);
       }
 
       if (
@@ -179,7 +180,7 @@ class GameMove {
         piecesPositions[pieceRow - 2][pieceCol + 2] === 0 &&
         piecesPositions[pieceRow - 1][pieceCol + 1] === playerOp
       ) {
-        res.push([pieceRow - 2, pieceCol + 2]);
+        eatMoves.push([pieceRow - 2, pieceCol + 2]);
       }
 
       if (
@@ -188,10 +189,10 @@ class GameMove {
         piecesPositions[pieceRow - 2][pieceCol - 2] === 0 &&
         piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp
       ) {
-        res.push([pieceRow - 2, pieceCol - 2]);
+        eatMoves.push([pieceRow - 2, pieceCol - 2]);
       }
     }
-    return res;
+    return { normalMoves, eatMoves };
   }
 }
 
