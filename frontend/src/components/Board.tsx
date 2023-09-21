@@ -106,7 +106,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     if (isValidToSwitch || pieceToEat === null) {
       changeTurn();
     } else {
-      console.log("keep playing");
       setTimeout(() => {
         pieceClickHandler(cellRow, cellCol);
       }, 0);
@@ -150,34 +149,17 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
     //check if the selected piece belong to the player who the turn is his turn.
-    const _availablePieces = getAvailablePieces();
+    const notStateAvailablePieces = getAvailablePieces();
     if (
       piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
-      !_availablePieces.some(
+      !notStateAvailablePieces.some(
         ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
       )
     ) {
+      clearBoardSelections();
+      setAvailablePieces(() => notStateAvailablePieces);
       return;
     }
-    //get all the moves that will take a piece.
-    /* const forceMoves: number[][] = getForceMoves(); */
-    //check if there a forceMoves and if the selected piece in the forceMoves.
-    /* if ( */
-    /*   forceMoves.length && */
-    /*   !forceMoves.some( */
-    /*     ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex, */
-    /*   ) */
-    /* ) { */
-    /*   return; */
-    /* } */
-    /* if ( */
-    /*   !selectedPiece && */
-    /*   !availablePieces.some( */
-    /*     ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex, */
-    /*   ) */
-    /* ) { */
-    /*   return; */
-    /* } */
 
     const piecePos: [number, number] = [rowIndex, cellIndex];
 
