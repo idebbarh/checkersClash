@@ -15,7 +15,9 @@ function Play() {
         <TurnSquare isActive={playerTurn === 1} player={1} />
         <TurnSquare isActive={playerTurn === 2} player={2} />
       </div>
-      <Board playerTurn={playerTurn} setPlayerTurn={setPlayerTurn} />
+      {playerTurn && (
+        <Board playerTurn={playerTurn} setPlayerTurn={setPlayerTurn} />
+      )}
     </div>
   );
 }

@@ -31,7 +31,7 @@ function getPiecesPositions(): (0 | 1 | 2)[][] {
 }
 
 type BoardType = {
-  playerTurn: 1 | 2 | null;
+  playerTurn: 1 | 2;
   setPlayerTurn: React.Dispatch<React.SetStateAction<1 | 2 | null>>;
 };
 
@@ -44,6 +44,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   );
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
   const [boardWith, setBoardWith] = useState<number | null>(null);
+  const [availablePieces, setAvailablePieces] = useState<[] | number[][]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
 
@@ -53,6 +54,10 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     }
     setBoardWith(boardRef.current?.offsetWidth);
   }, []);
+
+  useEffect(() => {
+    setAvailablePieces(() => getAvailablePieces());
+  }, [playerTurn]);
 
   useEffect(() => {
     piecesPositionsRef.current = piecesPositions;
@@ -145,36 +150,34 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
     //check if the selected piece belong to the player who the turn is his turn.
-    if (piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn) {
-      return;
-    }
-    //get all the moves that will take a piece.
-    const forceMoves: number[][] = [];
-
-    piecesPositions.forEach((row, rowIndex) => {
-      row.forEach((col, colIndex) => {
-        if (col === playerTurn) {
-          const movesInfo = GameMove.pieceAvailableMoves(
-            [rowIndex, colIndex],
-            playerTurn,
-            piecesPositionsRef.current,
-          );
-          if (movesInfo.eatMoves.length > 0) {
-            forceMoves.push([rowIndex, colIndex]);
-          }
-        }
-      });
-    });
-    //check if there a forceMoves and if the selected piece in the forceMoves.
-
+    const _availablePieces = getAvailablePieces();
     if (
-      forceMoves.length &&
-      !forceMoves.some(
+      piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
+      !_availablePieces.some(
         ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
       )
     ) {
       return;
     }
+    //get all the moves that will take a piece.
+    /* const forceMoves: number[][] = getForceMoves(); */
+    //check if there a forceMoves and if the selected piece in the forceMoves.
+    /* if ( */
+    /*   forceMoves.length && */
+    /*   !forceMoves.some( */
+    /*     ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex, */
+    /*   ) */
+    /* ) { */
+    /*   return; */
+    /* } */
+    /* if ( */
+    /*   !selectedPiece && */
+    /*   !availablePieces.some( */
+    /*     ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex, */
+    /*   ) */
+    /* ) { */
+    /*   return; */
+    /* } */
 
     const piecePos: [number, number] = [rowIndex, cellIndex];
 
@@ -189,6 +192,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     );
 
     setSelectedPiece(() => [rowIndex, cellIndex]);
+    setAvailablePieces(() => []);
   }
 
   function changeTurn(): void {
@@ -196,6 +200,48 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       return;
     }
     setPlayerTurn(() => (playerTurn === 1 ? 2 : 1));
+  }
+
+  function getAvailablePieces(): number[][] {
+    const forceMoves = getForceMoves();
+    if (forceMoves.length > 0) {
+      return forceMoves;
+    }
+    let pieces: number[][] = [];
+    piecesPositions.forEach((row, rowIndex) => {
+      row.forEach((col, colIndex) => {
+        if (col === playerTurn) {
+          const movesInfo = GameMove.pieceAvailableMoves(
+            [rowIndex, colIndex],
+            playerTurn,
+            piecesPositionsRef.current,
+          );
+          if (movesInfo.normalMoves.length > 0) {
+            pieces.push([rowIndex, colIndex]);
+          }
+        }
+      });
+    });
+    return pieces;
+  }
+
+  function getForceMoves(): number[][] {
+    const moves: number[][] = [];
+    piecesPositions.forEach((row, rowIndex) => {
+      row.forEach((col, colIndex) => {
+        if (col === playerTurn) {
+          const movesInfo = GameMove.pieceAvailableMoves(
+            [rowIndex, colIndex],
+            playerTurn,
+            piecesPositionsRef.current,
+          );
+          if (movesInfo.eatMoves.length > 0) {
+            moves.push([rowIndex, colIndex]);
+          }
+        }
+      });
+    });
+    return moves;
   }
 
   return (
@@ -219,7 +265,10 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
                   selectedPiece
                     ? selectedPiece[0] === rowIndex &&
                       selectedPiece[1] === cellIndex
-                    : false
+                    : availablePieces.some(
+                        ([pieceRow, pieceCol]) =>
+                          rowIndex === pieceRow && pieceCol === cellIndex,
+                      )
                 }
               >
                 {piecesPositions[rowIndex][cellIndex] !== 0 && (
