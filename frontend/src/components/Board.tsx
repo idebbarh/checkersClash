@@ -6,7 +6,6 @@ import {
 } from "../utils/constants";
 import Piece from "./Piece";
 import GameMove from "../utils/functions";
-import TurnSquare from "./TurnSquare";
 import MoveMarker from "./MoveMarker";
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
@@ -185,9 +184,12 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   function getAvailablePieces(): number[][] {
-    const forceMoves = getForceMoves();
+    const forceMoves = getEatMoves();
     if (forceMoves.length > 0) {
-      return forceMoves;
+      if (forceMoves.length === 1) {
+        return forceMoves;
+      }
+      return getEatMoveWithMaxEats(forceMoves);
     }
     let pieces: number[][] = [];
     piecesPositions.forEach((row, rowIndex) => {
@@ -207,7 +209,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     return pieces;
   }
 
-  function getForceMoves(): number[][] {
+  function getEatMoves(): number[][] {
     const moves: number[][] = [];
     piecesPositions.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {
@@ -224,6 +226,59 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       });
     });
     return moves;
+  }
+
+  function getEatMoveWithMaxEats(pieces: number[][]): number[][] {
+    let maxPiecesOrPiece: number[][] = [];
+    let maxEats = 0;
+    pieces.forEach((piece) => {
+      const eats = getPieceMaxEats(piece);
+      if (eats > maxEats) {
+        maxEats = eats;
+        maxPiecesOrPiece = [piece];
+      } else if (eats === maxEats) {
+        maxPiecesOrPiece.push(piece);
+      }
+    });
+    return maxPiecesOrPiece;
+  }
+
+  function getPieceMaxEats(piece: number[]): number {
+    const helper = (
+      piecesPositions: (0 | 1 | 2)[][],
+      cur: [number, number],
+      total: number,
+    ): number => {
+      const [cR, cC] = cur;
+
+      const { eatMoves: nexts } = GameMove.pieceAvailableMoves(
+        cur,
+        playerTurn,
+        piecesPositions,
+      );
+      if (nexts.length === 0) {
+        return total;
+      }
+
+      let maxEats = 0;
+
+      for (let i = 0; i < nexts.length; i++) {
+        const [nR, nC] = nexts[i];
+        piecesPositions[cR][cC] = 0;
+        piecesPositions[nR][nC] = playerTurn;
+        let result = helper(
+          piecesPositions,
+          nexts[i] as [number, number],
+          total + 1,
+        );
+        maxEats = Math.max(result, maxEats);
+      }
+      return maxEats;
+    };
+
+    let piecePositionsClone = piecesPositionsRef.current.map((row) => [...row]);
+
+    return helper(piecePositionsClone, piece as [number, number], 0);
   }
 
   return (
