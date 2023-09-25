@@ -35,9 +35,9 @@ type BoardType = {
 };
 
 function Board({ playerTurn, setPlayerTurn }: BoardType) {
-  const [piecesPositions, setPiecesPositions] = useState<(0 | 1 | 2)[][]>(
-    getPiecesPositions(),
-  );
+  const [piecesPositions, setPiecesPositions] = useState<
+    (0 | 1 | 2 | 3 | 4)[][]
+  >(getPiecesPositions());
   const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(
     null,
   );
@@ -45,7 +45,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   const [boardWith, setBoardWith] = useState<number | null>(null);
   const [availablePieces, setAvailablePieces] = useState<[] | number[][]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
-  const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
+  const piecesPositionsRef = useRef<(0 | 1 | 2 | 3 | 4)[][]>(piecesPositions);
 
   useEffect(() => {
     if (!boardRef.current) {
@@ -79,13 +79,17 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     const [cellRow, cellCol] = selectedCell;
     const piecePos: [number, number] = [cellRow, cellCol];
     const pieceValue = piecesPositions[pieceRow][pieceCol];
+    const isKing =
+      (cellRow === 0 && playerTurn === 2) ||
+      (cellRow === piecesPositions.length - 1 && playerTurn === 1);
+    const playerKing = playerTurn === 1 ? 3 : 4;
 
     setPiecesPositions((prevState) => {
       const newArr = [...prevState];
       //remove the piece from its old position
       newArr[pieceRow][pieceCol] = 0;
       //set the new piece its new position
-      newArr[cellRow][cellCol] = playerTurn;
+      newArr[cellRow][cellCol] = isKing ? playerKing : playerTurn;
       //if there a taken piece remove it.
       if (pieceToEat) {
         const [pieceToEatRow, pieceToEatCol] = pieceToEat;
@@ -244,18 +248,18 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   function getPieceMaxEats(piece: number[]): number {
-    const helper = (
-      piecesPositions: (0 | 1 | 2)[][],
+    const backtrack = (
+      piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
       cur: [number, number],
       total: number,
     ): number => {
       const [cR, cC] = cur;
-
       const { eatMoves: nexts } = GameMove.pieceAvailableMoves(
         cur,
         playerTurn,
         piecesPositions,
       );
+
       if (nexts.length === 0) {
         return total;
       }
@@ -266,7 +270,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         const [nR, nC] = nexts[i];
         piecesPositions[cR][cC] = 0;
         piecesPositions[nR][nC] = playerTurn;
-        let result = helper(
+        let result = backtrack(
           piecesPositions,
           nexts[i] as [number, number],
           total + 1,
@@ -278,7 +282,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     let piecePositionsClone = piecesPositionsRef.current.map((row) => [...row]);
 
-    return helper(piecePositionsClone, piece as [number, number], 0);
+    return backtrack(piecePositionsClone, piece as [number, number], 0);
   }
 
   return (
@@ -310,9 +314,15 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
               >
                 {piecesPositions[rowIndex][cellIndex] !== 0 && (
                   <Piece
-                    player={piecesPositions[rowIndex][cellIndex] as 1 | 2}
+                    player={
+                      piecesPositions[rowIndex][cellIndex] as 1 | 2 | 3 | 4
+                    }
                     setSelectedPiece={() =>
                       pieceClickHandler(rowIndex, cellIndex)
+                    }
+                    isKing={
+                      piecesPositions[rowIndex][cellIndex] === 3 ||
+                      piecesPositions[rowIndex][cellIndex] === 4
                     }
                   />
                 )}
