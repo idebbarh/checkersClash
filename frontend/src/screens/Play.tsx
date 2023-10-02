@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import Board from "../components/Board";
 import TurnSquare from "../components/TurnSquare";
+import SearchForPlayer from "./SearchForPlayer";
 
 function Play() {
+  const [isPlayer, setIsPlayer] = useState<boolean>(false);
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
 
   useEffect(() => {
     setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
   }, []);
+
+  if (!isPlayer) {
+    return <SearchForPlayer setIsPlayer={setIsPlayer} />;
+  }
 
   return (
     <div className="h-screen p-4">

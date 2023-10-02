@@ -3,13 +3,11 @@ import { TIMER } from "../utils/constants";
 
 const sidePortion = TIMER / 4;
 
-function TurnSquare({
-  isActive,
-  player,
-}: {
+type TurnSquareType = {
   isActive: boolean;
   player: 1 | 2;
-}) {
+};
+function TurnSquare({ isActive, player }: TurnSquareType) {
   return (
     <div
       className={`relative w-20 h-20 ${
