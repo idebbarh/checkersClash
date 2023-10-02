@@ -17,13 +17,13 @@ function LookingForPlayerCard({
     let cur = cll.head;
     const interval = setInterval(() => {
       if (cur) {
+        console.log(cur.value);
         setCurAvatar(cur.value);
         cur = cur.next;
-        console.log(cur);
         return;
       }
       clearInterval(interval);
-    }, 500);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
   return (

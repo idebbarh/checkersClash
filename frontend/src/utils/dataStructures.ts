@@ -31,8 +31,10 @@ class CLL implements CLLType {
     this.head = newNode;
 
     let cur: NodeType | null = this.head;
+    let isLoopStarted = false;
 
-    while (cur.next && cur.next != prevHead) {
+    while (cur.next && (cur.next != prevHead || !isLoopStarted)) {
+      isLoopStarted = true;
       cur = cur.next;
     }
 
