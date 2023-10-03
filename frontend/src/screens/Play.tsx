@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Board from "../components/Board";
 import TurnSquare from "../components/TurnSquare";
 import SearchForPlayer from "./SearchForPlayer";
-import { AVATARS } from "../utils/constants";
 import { faker } from "@faker-js/faker";
 
 type opponentDataType = {
@@ -41,9 +40,19 @@ function Play() {
         opponentName: randomName,
         opponentAvatar: randomName[0],
       }));
+      readyTimer();
     }, 6000);
     return () => clearTimeout(timer);
   }, []);
+
+  function readyTimer() {
+    setTimeout(() => {
+      setOpponentData((prevData) => ({
+        ...prevData,
+        isReady: true,
+      }));
+    }, 1000);
+  }
 
   if (!opponentData.isReady) {
     return (

@@ -1,4 +1,4 @@
-class GameMove {
+class GameMoves {
   public static isValidMove(
     cellValue: 0 | 1 | 2 | 3 | 4,
     pieceValue: 0 | 1 | 2 | 3 | 4,
@@ -6,7 +6,7 @@ class GameMove {
     piecePos: [number, number],
     piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
   ): [boolean, [number, number] | null] {
-    const [first, second] = GameMove.isValidMoveByPlayerNumber(
+    const [first, second] = GameMoves.isValidMoveByPlayerNumber(
       pieceValue,
       cellPos,
       piecePos,
@@ -104,13 +104,6 @@ class GameMove {
             (piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp &&
               isEmptyNext(pieceRow - 2, pieceCol - 2));
 
-      /* console.log( */
-      /*   pieceValue, */
-      /*   playerOp, */
-      /*   piecesPositions[pieceRow + 1][pieceCol - 1], */
-      /*   isEmptyNext(pieceRow + 2, pieceCol - 2), */
-      /* ); */
-
       return !res;
     } catch (e) {
       return true;
@@ -196,4 +189,4 @@ class GameMove {
   }
 }
 
-export default GameMove;
+export default GameMoves;

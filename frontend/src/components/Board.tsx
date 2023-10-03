@@ -5,7 +5,7 @@ import {
   NUMBER_OF_ROWS_IN_BOARD,
 } from "../utils/constants";
 import Piece from "./Piece";
-import GameMove from "../utils/functions";
+import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
@@ -98,7 +98,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       return newArr;
     });
 
-    const isValidToSwitch = GameMove.isValidToSwitchPlayer(
+    const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
       piecePos,
       pieceValue,
       piecesPositions,
@@ -134,7 +134,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     const pieceValue = piecesPositions[pieceRow][pieceCol];
     const cellPos: [number, number] = [rowIndex, cellIndex];
 
-    const [isValidMove, pieceToEatPosition] = GameMove.isValidMove(
+    const [isValidMove, pieceToEatPosition] = GameMoves.isValidMove(
       cellValue,
       pieceValue,
       cellPos,
@@ -166,7 +166,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     const piecePos: [number, number] = [rowIndex, cellIndex];
 
-    const movesInfo = GameMove.pieceAvailableMoves(
+    const movesInfo = GameMoves.pieceAvailableMoves(
       piecePos,
       playerTurn,
       piecesPositionsRef.current,
@@ -199,7 +199,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     piecesPositions.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {
         if (col === playerTurn) {
-          const movesInfo = GameMove.pieceAvailableMoves(
+          const movesInfo = GameMoves.pieceAvailableMoves(
             [rowIndex, colIndex],
             playerTurn,
             piecesPositionsRef.current,
@@ -218,7 +218,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     piecesPositions.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {
         if (col === playerTurn) {
-          const movesInfo = GameMove.pieceAvailableMoves(
+          const movesInfo = GameMoves.pieceAvailableMoves(
             [rowIndex, colIndex],
             playerTurn,
             piecesPositionsRef.current,
@@ -254,7 +254,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       total: number,
     ): number => {
       const [cR, cC] = cur;
-      const { eatMoves: nexts } = GameMove.pieceAvailableMoves(
+      const { eatMoves: nexts } = GameMoves.pieceAvailableMoves(
         cur,
         playerTurn,
         piecesPositions,
