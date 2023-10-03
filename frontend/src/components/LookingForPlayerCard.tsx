@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import CLL from "../utils/dataStructures";
 import { AVATARS } from "../utils/constants";
 
@@ -6,33 +7,63 @@ type LookingForPlayerCardType = {
   playerName: string | null;
   playerAvatar: string | null;
 };
+
 function LookingForPlayerCard({
   playerName,
   playerAvatar,
 }: LookingForPlayerCardType) {
-  const [curAvatar, setCurAvatar] = useState<null | string>(null);
+  const [randomAvatarSearching, setRandomAvatarSearching] = useState<
+    null | string
+  >(null);
   useEffect(() => {
     const cll = new CLL();
     AVATARS.forEach((a) => cll.addValue(a));
     let cur = cll.head;
+
+    if (cur) {
+      setRandomAvatarSearching(cur.value);
+      cur = cur.next;
+    }
     const interval = setInterval(() => {
       if (cur) {
         console.log(cur.value);
-        setCurAvatar(cur.value);
+        setRandomAvatarSearching(cur.value);
         cur = cur.next;
         return;
       }
       clearInterval(interval);
-    }, 100);
+    }, 800);
     return () => clearInterval(interval);
   }, []);
+
   return (
     <div className="flex-1 flex items-center flex-col gap-2 h-full border border-solid border-cell-can-accept-piece-bg p-4">
-      {/* avatar */}
-      <div className="w-[100px] h-[100px] rounded-2xl border border-solid border-black flex items-center justify-center">
-        {playerAvatar ?? curAvatar}
+      <div className="relative w-[100px] h-[100px] rounded-2xl border border-solid border-black overflow-hidden">
+        {playerAvatar ? (
+          <motion.div
+            className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+            initial={{ top: 0 }}
+            animate={{ top: "50%" }}
+            transition={{ duration: 0.5 }}
+            key={playerAvatar}
+          >
+            {playerAvatar.toUpperCase()}
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+              initial={{ top: 0 }}
+              animate={{ top: "100%" }}
+              exit={{ top: "120%" }}
+              transition={{ duration: 0.5 }}
+              key={randomAvatarSearching}
+            >
+              {randomAvatarSearching?.toUpperCase()}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
-      {/* name */}
       <h4 className="text-sm text-center">
         {playerName ? (
           <span className="text-red-800 capitalize">{playerName}</span>
