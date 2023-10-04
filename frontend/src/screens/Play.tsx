@@ -3,6 +3,7 @@ import Board from "../components/Board";
 import TurnSquare from "../components/TurnSquare";
 import SearchForPlayer from "./SearchForPlayer";
 import { faker } from "@faker-js/faker";
+import { useUserStateValue } from "../context/User/UserContext";
 
 type opponentDataType = {
   opponentName: null | string;
@@ -25,7 +26,9 @@ const fakeNames = Array(10)
   );
 
 function Play() {
-  const playerName = "ismail";
+  const {
+    state: { userName: playerName },
+  } = useUserStateValue();
   const playerAvatar = playerName[0];
   const [opponentData, setOpponentData] =
     useState<opponentDataType>(initOpponentData);

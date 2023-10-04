@@ -1,0 +1,4 @@
+type ActionType<T> = {
+  type: string;
+  payload?: T;
+};
