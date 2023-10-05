@@ -4,6 +4,7 @@ import TurnSquare from "../components/TurnSquare";
 import SearchForPlayer from "./SearchForPlayer";
 import { faker } from "@faker-js/faker";
 import { useUserStateValue } from "../context/User/UserContext";
+import { Navigate } from "react-router-dom";
 
 type opponentDataType = {
   opponentName: null | string;
@@ -29,7 +30,6 @@ function Play() {
   const {
     state: { username: playerName },
   } = useUserStateValue();
-  const playerAvatar = playerName[0];
   const [opponentData, setOpponentData] =
     useState<opponentDataType>(initOpponentData);
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
@@ -54,14 +54,18 @@ function Play() {
         ...prevData,
         isReady: true,
       }));
-    }, 1000);
+    }, 800);
+  }
+
+  if (!playerName) {
+    return <Navigate to={"/"} />;
   }
 
   if (!opponentData.isReady) {
     return (
       <SearchForPlayer
         playerName={playerName}
-        playerAvatar={playerAvatar}
+        playerAvatar={playerName[0]}
         opponentName={opponentData.opponentName}
         opponentAvatar={opponentData.opponentAvatar}
       />

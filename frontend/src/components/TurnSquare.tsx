@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { TIMER } from "../utils/constants";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const sidePortion = TIMER / 4;
 
@@ -24,6 +25,7 @@ function Timer() {
   const [sidesWidth, setSidesWidth] = useState<number[]>(initSidesWidth);
   const sideIndexRef = useRef<number>(0);
   const intervalRef = useRef<null | number>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (sidesWidth[sideIndexRef.current] < 0) {
@@ -31,7 +33,7 @@ function Timer() {
         sideIndexRef.current === sidesWidth.length - 1 &&
         intervalRef.current
       ) {
-        //do something here
+        navigate("/");
         clearInterval(intervalRef.current);
         return;
       }
@@ -41,7 +43,6 @@ function Timer() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log("interval");
       setSidesWidth((prevState) => {
         return prevState.map((sideWidth, index) =>
           index === sideIndexRef.current
