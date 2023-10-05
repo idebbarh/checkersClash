@@ -24,9 +24,9 @@ function LookingForPlayerCard({
       setRandomAvatarSearching(cur.value);
       cur = cur.next;
     }
+
     const interval = setInterval(() => {
-      if (cur) {
-        console.log(cur.value);
+      if (cur && !playerAvatar) {
         setRandomAvatarSearching(cur.value);
         cur = cur.next;
         return;

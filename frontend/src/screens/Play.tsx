@@ -27,7 +27,7 @@ const fakeNames = Array(10)
 
 function Play() {
   const {
-    state: { userName: playerName },
+    state: { username: playerName },
   } = useUserStateValue();
   const playerAvatar = playerName[0];
   const [opponentData, setOpponentData] =

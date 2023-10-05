@@ -1,14 +1,14 @@
 import { createContext, useContext, useReducer } from "react";
 import { ACTIONS } from "./actions";
 
-const userInitialState: UserType = { userName: "" };
+const userInitialState: UserType = { username: "" };
 
 const UserContext = createContext<StateContextType | undefined>(undefined);
 
-function reducer(state: UserType, action: ActionType<UserType["userName"]>) {
+function reducer(state: UserType, action: ReducerActionType): UserType {
   switch (action.type) {
     case ACTIONS.SETUSER:
-      return { userName: action.payload };
+      return { username: action.payload.username };
     default:
       return state;
   }

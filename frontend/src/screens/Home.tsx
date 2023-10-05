@@ -15,7 +15,7 @@ function Home() {
 
   function submitHandler(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    dispatch(setUser(username));
+    dispatch(setUser({ username }));
     navigate("/play");
   }
   return (

@@ -1,6 +1,15 @@
-type UserType = { userName: string };
+type UserType = { username: string };
+
+type ReducerActionType = {
+  type: keyof ActionsType;
+  payload: UserType;
+};
+
+type ActionsType = {
+  SETUSER: "SETUSER";
+};
 
 type StateContextType = {
   state: UserType;
-  dispatch: React.Dispatch<ActionType<UserType["userName"]>>;
+  dispatch: React.Dispatch<ReducerActionType>;
 };
