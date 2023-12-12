@@ -19,10 +19,10 @@ function getPiecesPositions(): (0 | 1 | 2)[][] {
               : 1
             : 0
           : cellIndex % 2 !== 0
-          ? rowIndex > 2
-            ? 2
-            : 1
-          : 0
+            ? rowIndex > 2
+              ? 2
+              : 1
+            : 0
         : 0;
     });
   });
@@ -35,9 +35,8 @@ type BoardType = {
 };
 
 function Board({ playerTurn, setPlayerTurn }: BoardType) {
-  const [piecesPositions, setPiecesPositions] = useState<
-    (0 | 1 | 2 | 3 | 4)[][]
-  >(getPiecesPositions());
+  const [piecesPositions, setPiecesPositions] =
+    useState<(0 | 1 | 2 | 3 | 4)[][]>(getPiecesPositions());
   const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(
     null,
   );
@@ -129,19 +128,15 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       return;
     }
 
-    const [pieceRow, pieceCol] = selectedPiece;
-    const cellValue = piecesPositions[rowIndex][cellIndex];
-    const pieceValue = piecesPositions[pieceRow][pieceCol];
     const cellPos: [number, number] = [rowIndex, cellIndex];
 
     const [isValidMove, pieceToEatPosition] = GameMoves.isValidMove(
-      cellValue,
-      pieceValue,
       cellPos,
       selectedPiece,
       piecesPositions,
     );
 
+    console.log(isValidMove);
     if (!isValidMove) {
       return;
     }
@@ -151,16 +146,17 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
   function pieceClickHandler(rowIndex: number, cellIndex: number) {
-    //check if the selected piece belong to the player who the turn is his turn.
-    const notStateAvailablePieces = getAvailablePieces();
+    //this just for the validation
+    const forValidationAvailablePieces = getAvailablePieces();
+    //check if the selected piece belong to the player who the turn is his turn, or the selected piece not in the available valid pieces to play with.
     if (
       piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
-      !notStateAvailablePieces.some(
+      !forValidationAvailablePieces.some(
         ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
       )
     ) {
       clearBoardSelections();
-      setAvailablePieces(() => notStateAvailablePieces);
+      setAvailablePieces(() => forValidationAvailablePieces);
       return;
     }
 
@@ -195,6 +191,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       }
       return getEatMoveWithMaxEats(forceMoves);
     }
+
     let pieces: number[][] = [];
     piecesPositions.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {

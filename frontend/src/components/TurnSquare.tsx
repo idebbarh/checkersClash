@@ -33,7 +33,7 @@ function Timer() {
         sideIndexRef.current === sidesWidth.length - 1 &&
         intervalRef.current
       ) {
-        navigate("/");
+        // navigate("/");
         clearInterval(intervalRef.current);
         return;
       }

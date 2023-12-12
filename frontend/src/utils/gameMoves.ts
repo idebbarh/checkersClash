@@ -1,86 +1,55 @@
 class GameMoves {
   public static isValidMove(
-    cellValue: 0 | 1 | 2 | 3 | 4,
-    pieceValue: 0 | 1 | 2 | 3 | 4,
     cellPos: [number, number],
     piecePos: [number, number],
     piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
   ): [boolean, [number, number] | null] {
-    const [first, second] = GameMoves.isValidMoveByPlayerNumber(
-      pieceValue,
-      cellPos,
+    const [pieceRow, pieceCol] = piecePos;
+    const [cellRow, cellCol] = cellPos;
+    const pieceValue = piecesPositions[pieceRow][pieceCol];
+
+    const { normalMoves, eatMoves } = GameMoves.pieceAvailableMoves(
       piecePos,
+      pieceValue,
       piecesPositions,
     );
-    return [cellValue === 0 && first, second];
+
+    let res = null;
+
+    eatMoves.forEach(([mr, mc]) => {
+      if (mr === cellRow && mc === cellCol) {
+        let eatenPiece = null;
+
+        if (pieceValue === 1) {
+          eatenPiece =
+            cellCol > pieceCol
+              ? [cellRow - 1, cellCol - 1]
+              : [cellRow - 1, cellCol + 1];
+        } else {
+          eatenPiece =
+            cellCol > pieceCol
+              ? [cellRow + 1, cellCol - 1]
+              : [cellRow + 1, cellCol + 1];
+        }
+        res = [true, eatenPiece];
+        return;
+      }
+    });
+
+    if (res) {
+      return res;
+    }
+
+    normalMoves.forEach(([mr, mc]) => {
+      if (mr === cellRow && mc === cellCol) {
+        res = [true, null];
+        return;
+      }
+    });
+
+    return res ?? [false, null];
   }
 
-  public static isValidMoveByPlayerNumber(
-    pieceValue: 0 | 1 | 2 | 3 | 4,
-    cellPos: [number, number],
-    piecePos: [number, number],
-    piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
-  ): [boolean, [number, number] | null] {
-    const [cellRow, cellCol] = cellPos;
-    const [pieceRow, pieceCol] = piecePos;
-    const playerOp = pieceValue === 1 ? 2 : 1;
-
-    const isValidNormalMove =
-      pieceValue === 1
-        ? cellRow - 1 === pieceRow &&
-          (cellCol + 1 === pieceCol || cellCol - 1 === pieceCol)
-        : cellRow + 1 === pieceRow &&
-          (cellCol + 1 === pieceCol || cellCol - 1 === pieceCol);
-
-    const isValidEatMovePart1 =
-      pieceValue === 1
-        ? cellRow - 2 === pieceRow &&
-          (cellCol + 2 === pieceCol || cellCol - 2 === pieceCol)
-        : cellRow + 2 === pieceRow &&
-          (cellCol + 2 === pieceCol || cellCol - 2 === pieceCol);
-
-    const isValidEatMovePart2 =
-      pieceValue === 1
-        ? (piecesPositions[cellRow - 1][cellCol - 1] === playerOp &&
-            cellRow - 2 === pieceRow &&
-            cellCol - 2 === pieceCol) ||
-          (piecesPositions[cellRow - 1][cellCol + 1] === playerOp &&
-            cellRow - 2 === pieceRow &&
-            cellCol + 2 === pieceCol)
-        : (piecesPositions[cellRow + 1][cellCol - 1] === playerOp &&
-            cellRow + 2 === pieceRow &&
-            cellCol - 2 === pieceCol) ||
-          (piecesPositions[cellRow + 1][cellCol + 1] === playerOp &&
-            cellRow + 2 === pieceRow &&
-            cellCol + 2 === pieceCol);
-
-    const pieceToEatPosition: [number, number] | null =
-      isValidEatMovePart1 && isValidEatMovePart2
-        ? pieceValue === 1
-          ? piecesPositions[cellRow - 1][cellCol - 1] === playerOp &&
-            cellRow - 2 === pieceRow &&
-            cellCol - 2 === pieceCol
-            ? [cellRow - 1, cellCol - 1]
-            : piecesPositions[cellRow - 1][cellCol + 1] === playerOp &&
-              cellRow - 2 === pieceRow &&
-              cellCol + 2 === pieceCol
-            ? [cellRow - 1, cellCol + 1]
-            : null
-          : piecesPositions[cellRow + 1][cellCol - 1] === playerOp &&
-            cellRow + 2 === pieceRow &&
-            cellCol - 2 === pieceCol
-          ? [cellRow + 1, cellCol - 1]
-          : piecesPositions[cellRow + 1][cellCol + 1] === playerOp &&
-            cellRow + 2 === pieceRow &&
-            cellCol + 2 === pieceCol
-          ? [cellRow + 1, cellCol + 1]
-          : null
-        : null;
-
-    const isValidEatMoveComplete = isValidEatMovePart1 && isValidEatMovePart2;
-
-    return [isValidNormalMove || isValidEatMoveComplete, pieceToEatPosition];
-  }
   public static isValidToSwitchPlayer(
     piecePos: [number, number],
     pieceValue: 0 | 1 | 2 | 3 | 4,
@@ -119,70 +88,83 @@ class GameMoves {
     const normalMoves: number[][] = [];
     const eatMoves: number[][] = [];
     const playerOp = pieceValue === 1 ? 2 : 1;
+    const normalMovesDirs = [
+      [1, 1],
+      [1, -1],
+    ];
+    const doubleMovesDirs = [
+      [2, 2],
+      [2, -2],
+    ];
     if (pieceValue === 1) {
-      if (
-        pieceRow < piecesPositions.length - 1 &&
-        pieceCol < piecesPositions[0].length - 1 &&
-        piecesPositions[pieceRow + 1][pieceCol + 1] === 0
-      ) {
-        normalMoves.push([pieceRow + 1, pieceCol + 1]);
+      for (let [nr, nc] of normalMovesDirs) {
+        let nextRow = piecesPositions[pieceRow + nr];
+        if (nextRow === undefined) {
+          continue;
+        }
+        let nextCol = nextRow[pieceCol + nc];
+        if (nextCol === undefined) {
+          continue;
+        }
+        if (nextCol === 0) {
+          normalMoves.push([pieceRow + nr, pieceCol + nc]);
+        }
       }
-      if (
-        pieceRow < piecesPositions.length - 1 &&
-        pieceCol > 0 &&
-        piecesPositions[pieceRow + 1][pieceCol - 1] === 0
-      ) {
-        normalMoves.push([pieceRow + 1, pieceCol - 1]);
-      }
-      if (
-        pieceRow < piecesPositions.length - 2 &&
-        pieceCol < piecesPositions[0].length - 2 &&
-        piecesPositions[pieceRow + 2][pieceCol + 2] === 0 &&
-        piecesPositions[pieceRow + 1][pieceCol + 1] === playerOp
-      ) {
-        eatMoves.push([pieceRow + 2, pieceCol + 2]);
-      }
+      for (let [nr, nc] of doubleMovesDirs) {
+        let nextNextRow = piecesPositions[pieceRow + nr];
+        let nextRow = piecesPositions[pieceRow + (nr - 1)];
+        if (nextNextRow === undefined) {
+          continue;
+        }
+        let nextNextCol = nextNextRow[pieceCol + nc];
+        let nextCol =
+          nc > 0 ? nextRow[pieceCol + (nc - 1)] : nextRow[pieceCol + (nc + 1)];
 
-      if (
-        pieceRow < piecesPositions.length - 2 &&
-        pieceCol > 1 &&
-        piecesPositions[pieceRow + 2][pieceCol - 2] === 0 &&
-        piecesPositions[pieceRow + 1][pieceCol - 1] === playerOp
-      ) {
-        eatMoves.push([pieceRow + 2, pieceCol - 2]);
+        if (nextNextCol === undefined) {
+          continue;
+        }
+
+        if (nextNextCol === 0 && nextCol === playerOp) {
+          eatMoves.push([pieceRow + nr, pieceCol + nc]);
+        }
       }
     } else {
-      if (
-        pieceRow > 0 &&
-        pieceCol < piecesPositions[0].length - 1 &&
-        piecesPositions[pieceRow - 1][pieceCol + 1] === 0
-      ) {
-        normalMoves.push([pieceRow - 1, pieceCol + 1]);
-      }
-      if (
-        pieceRow > 0 &&
-        pieceCol > 0 &&
-        piecesPositions[pieceRow - 1][pieceCol - 1] === 0
-      ) {
-        normalMoves.push([pieceRow - 1, pieceCol - 1]);
-      }
-
-      if (
-        pieceRow > 1 &&
-        pieceCol < piecesPositions[0].length - 2 &&
-        piecesPositions[pieceRow - 2][pieceCol + 2] === 0 &&
-        piecesPositions[pieceRow - 1][pieceCol + 1] === playerOp
-      ) {
-        eatMoves.push([pieceRow - 2, pieceCol + 2]);
+      for (let [nr, nc] of normalMovesDirs) {
+        nr *= -1;
+        let nextRow = piecesPositions[pieceRow + nr];
+        if (nextRow === undefined) {
+          continue;
+        }
+        let nextCol = nextRow[pieceCol + nc];
+        if (nextCol === undefined) {
+          continue;
+        }
+        if (nextCol === 0) {
+          normalMoves.push([pieceRow + nr, pieceCol + nc]);
+        }
       }
 
-      if (
-        pieceRow > 1 &&
-        pieceCol > 1 &&
-        piecesPositions[pieceRow - 2][pieceCol - 2] === 0 &&
-        piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp
-      ) {
-        eatMoves.push([pieceRow - 2, pieceCol - 2]);
+      for (let [nr, nc] of doubleMovesDirs) {
+        nr *= -1;
+        let nextNextRow = piecesPositions[pieceRow + nr];
+        let nextRow =
+          nr > 0
+            ? piecesPositions[pieceRow + (nr - 1)]
+            : piecesPositions[pieceRow + (nr + 1)];
+        if (nextNextRow === undefined) {
+          continue;
+        }
+        let nextNextCol = nextNextRow[pieceCol + nc];
+        let nextCol =
+          nc > 0 ? nextRow[pieceCol + (nc - 1)] : nextRow[pieceCol + (nc + 1)];
+
+        if (nextNextCol === undefined) {
+          continue;
+        }
+
+        if (nextNextCol === 0 && nextCol === playerOp) {
+          eatMoves.push([pieceRow + nr, pieceCol + nc]);
+        }
       }
     }
     return { normalMoves, eatMoves };

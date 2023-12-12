@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import CLL from "../utils/dataStructures";
+import CLL from "../utils/circularLinkedList";
 import { AVATARS } from "../utils/constants";
 
 type LookingForPlayerCardType = {
