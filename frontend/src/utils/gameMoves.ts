@@ -2,7 +2,7 @@ class GameMoves {
   public static isValidMove(
     cellPos: [number, number],
     piecePos: [number, number],
-    piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
+    piecesPositions: (0 | 1 | 2)[][],
   ): [boolean, [number, number] | null] {
     const [pieceRow, pieceCol] = piecePos;
     const [cellRow, cellCol] = cellPos;
@@ -52,8 +52,8 @@ class GameMoves {
 
   public static isValidToSwitchPlayer(
     piecePos: [number, number],
-    pieceValue: 0 | 1 | 2 | 3 | 4,
-    piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
+    pieceValue: 0 | 1 | 2,
+    piecesPositions: (0 | 1 | 2)[][],
   ): boolean {
     const { eatMoves } = GameMoves.pieceAvailableMoves(
       piecePos,
@@ -66,8 +66,8 @@ class GameMoves {
 
   public static pieceAvailableMoves(
     piecePos: [number, number],
-    pieceValue: 0 | 1 | 2 | 3 | 4,
-    piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
+    pieceValue: 0 | 1 | 2,
+    piecesPositions: (0 | 1 | 2)[][],
   ): { normalMoves: number[][]; eatMoves: number[][] } {
     const [pieceRow, pieceCol] = piecePos;
     const normalMoves: number[][] = [];
