@@ -61,16 +61,16 @@ function Play() {
     return <Navigate to={"/"} />;
   }
 
-  if (!opponentData.isReady) {
-    return (
-      <SearchForPlayer
-        playerName={playerName}
-        playerAvatar={playerName[0]}
-        opponentName={opponentData.opponentName}
-        opponentAvatar={opponentData.opponentAvatar}
-      />
-    );
-  }
+  // if (!opponentData.isReady) {
+  //   return (
+  //     <SearchForPlayer
+  //       playerName={playerName}
+  //       playerAvatar={playerName[0]}
+  //       opponentName={opponentData.opponentName}
+  //       opponentAvatar={opponentData.opponentAvatar}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="h-screen p-4">

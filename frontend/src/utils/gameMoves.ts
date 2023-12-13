@@ -14,11 +14,11 @@ class GameMoves {
       piecesPositions,
     );
 
-    let res = null;
+    let res: [boolean, [number, number] | null] = [false, null];
 
     eatMoves.forEach(([mr, mc]) => {
       if (mr === cellRow && mc === cellCol) {
-        let eatenPiece = null;
+        let eatenPiece: [number, number] | null = null;
 
         if (pieceValue === 1) {
           eatenPiece =
@@ -36,7 +36,7 @@ class GameMoves {
       }
     });
 
-    if (res) {
+    if (res[0] == true) {
       return res;
     }
 
@@ -47,7 +47,7 @@ class GameMoves {
       }
     });
 
-    return res ?? [false, null];
+    return res;
   }
 
   public static isValidToSwitchPlayer(
@@ -55,28 +55,13 @@ class GameMoves {
     pieceValue: 0 | 1 | 2 | 3 | 4,
     piecesPositions: (0 | 1 | 2 | 3 | 4)[][],
   ): boolean {
-    const playerOp = pieceValue === 1 ? 2 : 1;
-    const [pieceRow, pieceCol] = piecePos;
+    const { eatMoves } = GameMoves.pieceAvailableMoves(
+      piecePos,
+      pieceValue,
+      piecesPositions,
+    );
 
-    const isEmptyNext = (row: number, col: number) =>
-      piecesPositions[row][col] === 0;
-
-    try {
-      const res =
-        pieceValue === 1
-          ? (piecesPositions[pieceRow + 1][pieceCol + 1] === playerOp &&
-              isEmptyNext(pieceRow + 2, pieceCol + 2)) ||
-            (piecesPositions[pieceRow + 1][pieceCol - 1] === playerOp &&
-              isEmptyNext(pieceRow + 2, pieceCol - 2))
-          : (piecesPositions[pieceRow - 1][pieceCol + 1] === playerOp &&
-              isEmptyNext(pieceRow - 2, pieceCol + 2)) ||
-            (piecesPositions[pieceRow - 1][pieceCol - 1] === playerOp &&
-              isEmptyNext(pieceRow - 2, pieceCol - 2));
-
-      return !res;
-    } catch (e) {
-      return true;
-    }
+    return eatMoves.length === 0;
   }
 
   public static pieceAvailableMoves(

@@ -76,8 +76,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     const [pieceRow, pieceCol] = selectedPiece;
     const [cellRow, cellCol] = selectedCell;
-    const piecePos: [number, number] = [cellRow, cellCol];
-    const pieceValue = piecesPositions[pieceRow][pieceCol];
     const isKing =
       (cellRow === 0 && playerTurn === 2) ||
       (cellRow === piecesPositions.length - 1 && playerTurn === 1);
@@ -98,8 +96,8 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     });
 
     const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
-      piecePos,
-      pieceValue,
+      selectedCell,
+      playerTurn,
       piecesPositions,
     );
 
@@ -136,7 +134,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       piecesPositions,
     );
 
-    console.log(isValidMove);
     if (!isValidMove) {
       return;
     }
