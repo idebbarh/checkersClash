@@ -8,7 +8,6 @@ import Piece from "./Piece";
 import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 import { positonToString } from "../utils/helperFunctions";
-
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
     return new Array(NUMBER_OF_CELLS_IN_ROW).fill(0).map((_, cellIndex) => {
@@ -44,7 +43,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   const [possibleMoves, setPossibleMoves] = useState<null | number[][]>(null);
   const [boardWith, setBoardWith] = useState<number | null>(null);
   const [availablePieces, setAvailablePieces] = useState<[] | number[][]>([]);
-  const [kingPositions, setKingPositions] = useState<{
+  const kingPositionsRef = useRef<{
     [key: string]: [number, number];
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -56,10 +55,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     }
     setBoardWith(boardRef.current?.offsetWidth);
   }, []);
-
-  useEffect(() => {
-    console.log(kingPositions);
-  }, [kingPositions]);
 
   useEffect(() => {
     setAvailablePieces(() => getAvailablePieces());
@@ -86,15 +81,15 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     const [cellRow, cellCol] = selectedCell;
     //check if the piece become new king , or its already a king an move its place
     const isKing =
-      (playerTurn == 1 && cellRow === piecesPositions.length - 1) ||
+      (playerTurn == 1 && cellRow === piecesPositionsRef.current.length - 1) ||
       (playerTurn === 2 && cellRow === 0) ||
-      kingPositions?.hasOwnProperty(positonToString(selectedPiece));
+      kingPositionsRef.current?.hasOwnProperty(positonToString(selectedPiece));
 
     if (isKing) {
       //if it's new king king store its position, remove the its prevPositon and store the positon if its already king
-      setKingPositions((prevState) => ({
-        ...(prevState !== null
-          ? Object.entries(prevState)
+      kingPositionsRef.current = {
+        ...(kingPositionsRef.current !== null
+          ? Object.entries(kingPositionsRef.current)
               .filter(([key]) => key !== positonToString(selectedPiece))
               .reduce(
                 (prev, [curKey, curVal]) => ({ ...prev, [curKey]: curVal }),
@@ -102,27 +97,34 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
               )
           : {}),
         [positonToString(selectedCell)]: selectedCell,
-      }));
+      };
     }
-
-    setPiecesPositions((prevState) => {
-      const newArr = [...prevState];
-      //remove the piece from its old position
-      newArr[pieceRow][pieceCol] = 0;
-      //set the new piece its new position
-      newArr[cellRow][cellCol] = playerTurn;
-      //if there a taken piece remove it.
-      if (pieceToEat) {
-        const [pieceToEatRow, pieceToEatCol] = pieceToEat;
-        newArr[pieceToEatRow][pieceToEatCol] = 0;
-      }
-      return newArr;
+    const newPiecesPositionsState = piecesPositionsRef.current.map((row, i) => {
+      return row.map((col, j) => {
+        return pieceRow === i && pieceCol === j
+          ? 0
+          : cellRow === i && cellCol === j
+            ? playerTurn
+            : pieceToEat && pieceToEat[0] === i && pieceToEat[1] === j
+              ? 0
+              : col;
+      });
     });
+
+    setPiecesPositions(() => {
+      return newPiecesPositionsState;
+    });
+
+    if (pieceToEat) {
+      console.log(newPiecesPositionsState[pieceToEat[0]][pieceToEat[1]]);
+    }
 
     const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
       selectedCell,
       playerTurn,
-      piecesPositions,
+      newPiecesPositionsState,
+      kingPositionsRef.current !== null &&
+        kingPositionsRef.current.hasOwnProperty(positonToString(selectedCell)),
     );
 
     clearBoardSelections();
@@ -137,7 +139,10 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   function cellClickHandler(rowIndex: number, cellIndex: number) {
-    if (!selectedPiece || piecesPositions[rowIndex][cellIndex] !== 0) {
+    if (
+      !selectedPiece ||
+      piecesPositionsRef.current[rowIndex][cellIndex] !== 0
+    ) {
       pieceClickHandler(rowIndex, cellIndex);
       return;
     }
@@ -155,7 +160,9 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     const [isValidMove, pieceToEatPosition] = GameMoves.isValidMove(
       cellPos,
       selectedPiece,
-      piecesPositions,
+      piecesPositionsRef.current,
+      kingPositionsRef.current !== null &&
+        kingPositionsRef.current.hasOwnProperty(positonToString(selectedPiece)),
     );
 
     if (!isValidMove) {
@@ -187,6 +194,8 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       piecePos,
       playerTurn,
       piecesPositionsRef.current,
+      kingPositionsRef.current !== null &&
+        kingPositionsRef.current.hasOwnProperty(positonToString(piecePos)),
     );
 
     setPossibleMoves(() =>
@@ -214,13 +223,18 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     }
 
     let pieces: number[][] = [];
-    piecesPositions.forEach((row, rowIndex) => {
+    piecesPositionsRef.current.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {
         if (col === playerTurn) {
+          const piecePos: [number, number] = [rowIndex, colIndex];
           const movesInfo = GameMoves.pieceAvailableMoves(
-            [rowIndex, colIndex],
+            piecePos,
             playerTurn,
             piecesPositionsRef.current,
+            kingPositionsRef.current !== null &&
+              kingPositionsRef.current.hasOwnProperty(
+                positonToString(piecePos),
+              ),
           );
           if (movesInfo.normalMoves.length > 0) {
             pieces.push([rowIndex, colIndex]);
@@ -233,13 +247,18 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
   function getEatMoves(): number[][] {
     const moves: number[][] = [];
-    piecesPositions.forEach((row, rowIndex) => {
+    piecesPositionsRef.current.forEach((row, rowIndex) => {
       row.forEach((col, colIndex) => {
         if (col === playerTurn) {
+          const piecePos: [number, number] = [rowIndex, colIndex];
           const movesInfo = GameMoves.pieceAvailableMoves(
-            [rowIndex, colIndex],
+            piecePos,
             playerTurn,
             piecesPositionsRef.current,
+            kingPositionsRef.current !== null &&
+              kingPositionsRef.current.hasOwnProperty(
+                positonToString(piecePos),
+              ),
           );
           if (movesInfo.eatMoves.length > 0) {
             moves.push([rowIndex, colIndex]);
@@ -276,6 +295,8 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         cur,
         playerTurn,
         piecesPositions,
+        kingPositionsRef.current !== null &&
+          kingPositionsRef.current.hasOwnProperty(positonToString(cur)),
       );
 
       if (nexts.length === 0) {
