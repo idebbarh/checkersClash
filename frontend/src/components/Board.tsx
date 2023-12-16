@@ -326,9 +326,21 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
       for (let i = 0; i < nexts.length; i++) {
         const [nR, nC] = nexts[i];
+        const eatenPiece = GameMoves.getEatenPiece(
+          nexts[i] as [number, number],
+          cur,
+          piecesPositions,
+          isKing,
+        );
+
         piecesPositions[cR][cC] = 0;
         piecesPositions[nR][nC] = playerTurn;
-        //TODO: handle the piece eaten, the king move will cause and infinit call
+
+        if (eatenPiece) {
+          const [eR, eC] = eatenPiece;
+          piecesPositions[eR][eC] = 0;
+        }
+
         if (isKing) {
           kingPositions = {
             ...filterObj<{ [key: string]: [number, number] }>(

@@ -17,10 +17,13 @@ class GameMoves {
       piecesPositions,
       isKing,
     );
+
     if (eatMoves.length === 0) {
       return null;
     }
+
     let eatenPiece: [number, number] | null = null;
+
     if (isKing) {
       let i = -1;
       let j = -1;
