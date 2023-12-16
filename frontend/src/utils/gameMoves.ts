@@ -8,7 +8,9 @@ class GameMoves {
     const [pieceRow, pieceCol] = piecePos;
     const [cellRow, cellCol] = cellPos;
     const pieceValue = piecesPositions[pieceRow][pieceCol];
-
+    const playerOp = pieceValue === 1 ? 2 : 1;
+    const M = piecesPositions.length;
+    const N = piecesPositions[0].length;
     const { normalMoves, eatMoves } = GameMoves.pieceAvailableMoves(
       piecePos,
       pieceValue,
@@ -22,7 +24,46 @@ class GameMoves {
       if (mr === cellRow && mc === cellCol) {
         let eatenPiece: [number, number] | null = null;
         if (isKing) {
-          //TODO: handle king eatenPiece
+          let i = -1;
+          let j = -1;
+          if (cellCol > pieceCol && cellRow < pieceRow) {
+            i = cellRow;
+            j = cellCol;
+            while (i < M && j >= 0 && piecesPositions[i][j] !== playerOp) {
+              i++;
+              j--;
+            }
+          } else if (cellCol > pieceCol && cellRow > pieceRow) {
+            i = cellRow;
+            j = cellCol;
+            while (i >= 0 && j >= 0 && piecesPositions[i][j] !== playerOp) {
+              i--;
+              j--;
+            }
+          } else if (cellCol < pieceCol && cellRow < pieceRow) {
+            i = cellRow;
+            j = cellCol;
+            while (i < M && j < N && piecesPositions[i][j] !== playerOp) {
+              i++;
+              j++;
+            }
+          } else if (cellCol < pieceCol && cellRow > pieceRow) {
+            i = cellRow;
+            j = cellCol;
+            while (i >= 0 && j < N && piecesPositions[i][j] !== playerOp) {
+              i--;
+              j++;
+            }
+          }
+          if (
+            i >= 0 &&
+            i < M &&
+            j >= 0 &&
+            j < N &&
+            piecesPositions[i][j] === playerOp
+          ) {
+            eatenPiece = [i, j];
+          }
         } else {
           if (pieceValue === 1) {
             eatenPiece =

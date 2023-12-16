@@ -7,7 +7,7 @@ import {
 import Piece from "./Piece";
 import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
-import { positonToString } from "../utils/helperFunctions";
+import { filterObj, positonToString } from "../utils/helperFunctions";
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
     return new Array(NUMBER_OF_CELLS_IN_ROW).fill(0).map((_, cellIndex) => {
@@ -61,6 +61,10 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }, [playerTurn]);
 
   useEffect(() => {
+    console.log(kingPositionsRef.current);
+  }, [kingPositionsRef.current]);
+
+  useEffect(() => {
     piecesPositionsRef.current = piecesPositions;
   }, [piecesPositions]);
 
@@ -88,17 +92,23 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     if (isKing) {
       //if it's new king king store its position, remove the its prevPositon and store the positon if its already king
       kingPositionsRef.current = {
-        ...(kingPositionsRef.current !== null
-          ? Object.entries(kingPositionsRef.current)
-              .filter(([key]) => key !== positonToString(selectedPiece))
-              .reduce(
-                (prev, [curKey, curVal]) => ({ ...prev, [curKey]: curVal }),
-                {},
-              )
-          : {}),
+        ...filterObj<{ [key: string]: [number, number] }>(
+          kingPositionsRef.current,
+          (key) => key !== positonToString(selectedPiece),
+        ),
         [positonToString(selectedCell)]: selectedCell,
       };
+    } else if (
+      pieceToEat !== null &&
+      kingPositionsRef.current?.hasOwnProperty(positonToString(pieceToEat))
+    ) {
+      //if the eatenPiece is the a king remove the piece from the kingPositions
+      kingPositionsRef.current = filterObj<{ [key: string]: [number, number] }>(
+        kingPositionsRef.current,
+        (key) => key !== positonToString(pieceToEat),
+      );
     }
+
     const newPiecesPositionsState = piecesPositionsRef.current.map((row, i) => {
       return row.map((col, j) => {
         return pieceRow === i && pieceCol === j
@@ -114,10 +124,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     setPiecesPositions(() => {
       return newPiecesPositionsState;
     });
-
-    if (pieceToEat) {
-      console.log(newPiecesPositionsState[pieceToEat[0]][pieceToEat[1]]);
-    }
 
     const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
       selectedCell,
@@ -165,6 +171,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         kingPositionsRef.current.hasOwnProperty(positonToString(selectedPiece)),
     );
 
+    //isValidMove = false will never happend , just double check
     if (!isValidMove) {
       return;
     }
@@ -289,15 +296,29 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       piecesPositions: (0 | 1 | 2)[][],
       cur: [number, number],
       total: number,
+      kingPositions: typeof kingPositionsRef.current,
     ): number => {
+      console.log("wtf");
       const [cR, cC] = cur;
+      const isKing =
+        kingPositions !== null &&
+        kingPositions.hasOwnProperty(positonToString(cur));
+
       const { eatMoves: nexts } = GameMoves.pieceAvailableMoves(
         cur,
         playerTurn,
         piecesPositions,
-        kingPositionsRef.current !== null &&
-          kingPositionsRef.current.hasOwnProperty(positonToString(cur)),
+        isKing,
       );
+
+      if (
+        kingPositionsRef.current !== null &&
+        kingPositionsRef.current.hasOwnProperty(positonToString(cur))
+      ) {
+        console.log(nexts.length);
+      } else {
+        console.log(cur);
+      }
 
       if (nexts.length === 0) {
         return total;
@@ -309,10 +330,23 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         const [nR, nC] = nexts[i];
         piecesPositions[cR][cC] = 0;
         piecesPositions[nR][nC] = playerTurn;
+        if (isKing) {
+          kingPositions = {
+            ...filterObj<{ [key: string]: [number, number] }>(
+              kingPositions,
+              (key) => key !== positonToString(cur),
+            ),
+            [positonToString(nexts[i] as [number, number])]: nexts[i] as [
+              number,
+              number,
+            ],
+          };
+        }
         let result = backtrack(
           piecesPositions,
           nexts[i] as [number, number],
           total + 1,
+          kingPositions,
         );
         maxEats = Math.max(result, maxEats);
       }
@@ -320,8 +354,14 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     };
 
     let piecePositionsClone = piecesPositionsRef.current.map((row) => [...row]);
+    let kingPositionsClone = { ...kingPositionsRef.current };
 
-    return backtrack(piecePositionsClone, piece as [number, number], 0);
+    return backtrack(
+      piecePositionsClone,
+      piece as [number, number],
+      0,
+      kingPositionsClone,
+    );
   }
 
   return (
