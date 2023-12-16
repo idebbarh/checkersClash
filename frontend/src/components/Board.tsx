@@ -163,7 +163,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     const cellPos: [number, number] = [rowIndex, cellIndex];
 
-    const [isValidMove, pieceToEatPosition] = GameMoves.isValidMove(
+    const eatenPiece = GameMoves.getEatenPiece(
       cellPos,
       selectedPiece,
       piecesPositionsRef.current,
@@ -171,12 +171,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         kingPositionsRef.current.hasOwnProperty(positonToString(selectedPiece)),
     );
 
-    //isValidMove = false will never happend , just double check
-    if (!isValidMove) {
-      return;
-    }
-
-    movePiece([rowIndex, cellIndex], pieceToEatPosition);
+    movePiece([rowIndex, cellIndex], eatenPiece);
   }
 
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
@@ -311,15 +306,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         isKing,
       );
 
-      if (
-        kingPositionsRef.current !== null &&
-        kingPositionsRef.current.hasOwnProperty(positonToString(cur))
-      ) {
-        console.log(nexts.length);
-      } else {
-        console.log(cur);
-      }
-
       if (nexts.length === 0) {
         return total;
       }
@@ -330,6 +316,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         const [nR, nC] = nexts[i];
         piecesPositions[cR][cC] = 0;
         piecesPositions[nR][nC] = playerTurn;
+        //TODO: handle the piece eaten, the king move will cause and infinit call
         if (isKing) {
           kingPositions = {
             ...filterObj<{ [key: string]: [number, number] }>(
