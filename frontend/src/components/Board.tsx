@@ -87,15 +87,27 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     const isKing =
       (playerTurn == 1 && cellRow === piecesPositionsRef.current.length - 1) ||
       (playerTurn === 2 && cellRow === 0) ||
-      kingPositionsRef.current?.hasOwnProperty(positonToString(selectedPiece));
+      (kingPositionsRef.current !== null &&
+        kingPositionsRef.current.hasOwnProperty(
+          positonToString(selectedPiece),
+        ));
+
+    const isFirstTimeKing =
+      isKing &&
+      (kingPositionsRef.current === null ||
+        !kingPositionsRef.current.hasOwnProperty(
+          positonToString(selectedPiece),
+        ));
 
     if (isKing) {
       //if it's new king king store its position, remove the its prevPositon and store the positon if its already king
       kingPositionsRef.current = {
-        ...filterObj<{ [key: string]: [number, number] }>(
-          kingPositionsRef.current,
-          (key) => key !== positonToString(selectedPiece),
-        ),
+        ...(isFirstTimeKing
+          ? kingPositionsRef.current
+          : filterObj<{ [key: string]: [number, number] }>(
+              kingPositionsRef.current,
+              (key) => key !== positonToString(selectedPiece),
+            )),
         [positonToString(selectedCell)]: selectedCell,
       };
     } else if (
@@ -135,7 +147,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     clearBoardSelections();
 
-    if (isValidToSwitch || pieceToEat === null) {
+    if (isValidToSwitch || pieceToEat === null || isFirstTimeKing) {
       changeTurn();
     } else {
       setTimeout(() => {
