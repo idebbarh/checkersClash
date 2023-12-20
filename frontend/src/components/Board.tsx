@@ -139,6 +139,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
       selectedCell,
+      selectedPiece,
       playerTurn,
       newPiecesPositionsState,
       kingPositionsRef.current !== null &&

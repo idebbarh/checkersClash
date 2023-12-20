@@ -28,6 +28,7 @@ class GameMoves {
       let i = -1;
       let j = -1;
       if (cellCol > pieceCol && cellRow < pieceRow) {
+        console.log(1);
         i = cellRow;
         j = cellCol;
         while (i < M && j >= 0 && piecesPositions[i][j] !== playerOp) {
@@ -35,6 +36,7 @@ class GameMoves {
           j--;
         }
       } else if (cellCol > pieceCol && cellRow > pieceRow) {
+        console.log(2);
         i = cellRow;
         j = cellCol;
         while (i >= 0 && j >= 0 && piecesPositions[i][j] !== playerOp) {
@@ -42,6 +44,7 @@ class GameMoves {
           j--;
         }
       } else if (cellCol < pieceCol && cellRow < pieceRow) {
+        console.log(3);
         i = cellRow;
         j = cellCol;
         while (i < M && j < N && piecesPositions[i][j] !== playerOp) {
@@ -49,6 +52,7 @@ class GameMoves {
           j++;
         }
       } else if (cellCol < pieceCol && cellRow > pieceRow) {
+        console.log(4);
         i = cellRow;
         j = cellCol;
         while (i >= 0 && j < N && piecesPositions[i][j] !== playerOp) {
@@ -84,6 +88,7 @@ class GameMoves {
 
   public static isValidToSwitchPlayer(
     piecePos: [number, number],
+    cellPos: [number, number],
     pieceValue: 0 | 1 | 2,
     piecesPositions: (0 | 1 | 2)[][],
     isKing: boolean,
@@ -95,7 +100,38 @@ class GameMoves {
       isKing,
     );
 
-    return eatMoves.length === 0;
+    let eatMovesSize = eatMoves.length;
+
+    const eatenPiece = GameMoves.getEatenPiece(
+      piecePos,
+      cellPos,
+      piecesPositions,
+      isKing,
+    );
+
+    if (!isKing || !eatMovesSize) {
+      return !eatMovesSize;
+    }
+
+    eatMovesSize = eatMoves.filter((eatMove) => {
+      const curEatenPiece = GameMoves.getEatenPiece(
+        eatMove as [number, number],
+        piecePos,
+        piecesPositions,
+        isKing,
+      );
+      return (
+        curEatenPiece === null ||
+        eatenPiece === null ||
+        (curEatenPiece[0] !== eatenPiece[0] &&
+          curEatenPiece[1] !== eatenPiece[1])
+      );
+    }).length;
+
+    console.log(eatenPiece);
+    console.log(eatMoves);
+
+    return !eatMovesSize;
   }
 
   public static pieceAvailableMoves(
