@@ -8,6 +8,8 @@ import Piece from "./Piece";
 import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 import { filterObj, positonToString } from "../utils/helperFunctions";
+//TODO: one piece with multiple eat choices
+//TODO: fix king fake double move
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
     return new Array(NUMBER_OF_CELLS_IN_ROW).fill(0).map((_, cellIndex) => {

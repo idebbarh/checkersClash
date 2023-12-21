@@ -25,10 +25,9 @@ class GameMoves {
     let eatenPiece: [number, number] | null = null;
 
     if (isKing) {
-      let i = -1;
-      let j = -1;
+      let i = 0;
+      let j = 0;
       if (cellCol > pieceCol && cellRow < pieceRow) {
-        console.log(1);
         i = cellRow;
         j = cellCol;
         while (i < M && j >= 0 && piecesPositions[i][j] !== playerOp) {
@@ -36,7 +35,6 @@ class GameMoves {
           j--;
         }
       } else if (cellCol > pieceCol && cellRow > pieceRow) {
-        console.log(2);
         i = cellRow;
         j = cellCol;
         while (i >= 0 && j >= 0 && piecesPositions[i][j] !== playerOp) {
@@ -44,7 +42,6 @@ class GameMoves {
           j--;
         }
       } else if (cellCol < pieceCol && cellRow < pieceRow) {
-        console.log(3);
         i = cellRow;
         j = cellCol;
         while (i < M && j < N && piecesPositions[i][j] !== playerOp) {
@@ -52,7 +49,6 @@ class GameMoves {
           j++;
         }
       } else if (cellCol < pieceCol && cellRow > pieceRow) {
-        console.log(4);
         i = cellRow;
         j = cellCol;
         while (i >= 0 && j < N && piecesPositions[i][j] !== playerOp) {
@@ -102,16 +98,16 @@ class GameMoves {
 
     let eatMovesSize = eatMoves.length;
 
+    if (!isKing || !eatMovesSize) {
+      return !eatMovesSize;
+    }
+
     const eatenPiece = GameMoves.getEatenPiece(
       piecePos,
       cellPos,
       piecesPositions,
       isKing,
     );
-
-    if (!isKing || !eatMovesSize) {
-      return !eatMovesSize;
-    }
 
     eatMovesSize = eatMoves.filter((eatMove) => {
       const curEatenPiece = GameMoves.getEatenPiece(
@@ -127,9 +123,6 @@ class GameMoves {
           curEatenPiece[1] !== eatenPiece[1])
       );
     }).length;
-
-    console.log(eatenPiece);
-    console.log(eatMoves);
 
     return !eatMovesSize;
   }
@@ -185,10 +178,14 @@ class GameMoves {
           j >= 0 &&
           piecesPositions[i][j] === playerOp
         ) {
-          const nextPieceRow = piecesPositions[i + r];
-
-          if (nextPieceRow !== undefined && nextPieceRow[j + c] === 0) {
-            eatMoves.push([i + r, j + c]);
+          i += r;
+          j += c;
+          let nextPieceRow = piecesPositions[i];
+          while (nextPieceRow !== undefined && nextPieceRow[j] === 0) {
+            eatMoves.push([i, j]);
+            i += r;
+            j += c;
+            nextPieceRow = piecesPositions[i];
           }
         }
       }
