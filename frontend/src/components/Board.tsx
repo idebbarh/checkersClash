@@ -9,12 +9,7 @@ import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 import { filterObj, positonToString } from "../utils/helperFunctions";
 //TODO: fix king fake double move
-
-type Equal<T1, T2> = (<P>() => T1 extends P ? 1 : 0) extends <
-  P,
->() => T2 extends P ? 1 : 0
-  ? true
-  : false;
+//TODO: prevent the other piece from play with them when piece is double jump
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
@@ -201,9 +196,9 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       ([piece]) => piece,
     );
     //separate the cells from the pieces then filter them by the curPiece
-    const newAvailablePiecesCells = availablePiecesAndItsCells
-      .filter(([piece]) => piece[0] === rowIndex && piece[1] === cellIndex)
-      .map(([, cell]) => cell);
+    let newAvailablePiecesCells = availablePiecesAndItsCells.find(
+      ([piece]) => piece[0] === rowIndex && piece[1] === cellIndex,
+    )?.[1];
     //check if the selected piece belong to the player who the turn is his turn, or the selected piece not in the available valid pieces to play with.
     if (
       piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
@@ -228,7 +223,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
 
     setPossibleMoves(() =>
       movesInfo.eatMoves.length
-        ? newAvailablePiecesCells
+        ? newAvailablePiecesCells ?? []
         : movesInfo.normalMoves,
     );
 
@@ -243,7 +238,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     setPlayerTurn(() => (playerTurn === 1 ? 2 : 1));
   }
 
-  function getAvailablePiecesAndItsCells(): [number[], number[]][] {
+  function getAvailablePiecesAndItsCells(): [number[], number[][]][] {
     const forceMoves = getEatMoves();
     if (forceMoves.length > 0) {
       return getEatMoveWithMaxEats(forceMoves);
@@ -275,7 +270,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
             .filter(Boolean) as number[][]),
         ];
       }, [])
-      .map((piece) => [piece, [-1, -1]]);
+      .map((piece) => [piece, [[-1, -1]]]);
   }
 
   function getEatMoves(): number[][] {
@@ -302,30 +297,30 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     return moves;
   }
 
-  function getEatMoveWithMaxEats(pieces: number[][]): [number[], number[]][] {
-    let maxPiecesOrPiece: [number[], number[]][] = [];
+  function getEatMoveWithMaxEats(pieces: number[][]): [number[], number[][]][] {
+    let maxPiecesOrPiece: [number[], number[][]][] = [];
     let maxEats = 0;
     pieces.forEach((piece) => {
-      const [eats, cell] = getPieceMaxEats(piece);
+      const [eats, cells] = getPieceMaxEats(piece);
       if (eats > maxEats) {
         maxEats = eats;
-        maxPiecesOrPiece = [[piece, cell]];
+        maxPiecesOrPiece = [[piece, cells]];
       } else if (eats === maxEats) {
-        maxPiecesOrPiece.push([piece, cell]);
+        maxPiecesOrPiece.push([piece, cells]);
       }
     });
     return maxPiecesOrPiece;
   }
 
-  function getPieceMaxEats(piece: number[]): [number, [number, number]] {
+  function getPieceMaxEats(piece: number[]): [number, [number, number][]] {
     //TODO: handle when piece have multipe cells that gives max profit
     const backtrack = (
       piecesPositions: (0 | 1 | 2)[][],
       cur: [number, number],
       total: number,
-      maxEatsCell: [number, number],
+      maxEatsCells: [number, number],
       kingPositions: typeof kingPositionsRef.current,
-    ): [number, [number, number]] => {
+    ): [number, [number, number][]] => {
       const [cR, cC] = cur;
       const isKing =
         kingPositions !== null &&
@@ -339,11 +334,11 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       );
 
       if (nexts.length === 0) {
-        return [total, maxEatsCell];
+        return [total, [maxEatsCells]];
       }
 
       let maxEats = 0;
-      let fMaxEatsCell: [number, number] = [-1, -1];
+      let fMaxEatsCells: [number, number][] = [];
 
       for (let i = 0; i < nexts.length; i++) {
         const [nR, nC] = nexts[i];
@@ -353,40 +348,42 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
           piecesPositions,
           isKing,
         );
-
-        piecesPositions[cR][cC] = 0;
-        piecesPositions[nR][nC] = playerTurn;
-
-        if (eatenPiece) {
-          const [eR, eC] = eatenPiece;
-          piecesPositions[eR][eC] = 0;
-        }
-
-        if (isKing) {
-          kingPositions = {
-            ...filterObj<{ [key: string]: [number, number] }>(
-              kingPositions,
-              (key) => key !== positonToString(cur),
-            ),
-            [positonToString(nexts[i] as [number, number])]: nexts[i] as [
-              number,
-              number,
-            ],
-          };
-        }
         let result = backtrack(
-          piecesPositions,
+          piecesPositions.map((row, i) => {
+            return row.map((col, j) => {
+              return cR === i && cC === j
+                ? 0
+                : nR === i && nC === j
+                  ? playerTurn
+                  : eatenPiece && eatenPiece[0] === i && eatenPiece[1] === j
+                    ? 0
+                    : col;
+            });
+          }),
           nexts[i] as [number, number],
           total + 1,
-          (total === 0 ? nexts[i] : maxEatsCell) as [number, number],
-          kingPositions,
+          (total === 0 ? nexts[i] : maxEatsCells) as [number, number],
+          isKing
+            ? {
+                ...filterObj<{ [key: string]: [number, number] }>(
+                  kingPositions,
+                  (key) => key !== positonToString(cur),
+                ),
+                [positonToString(nexts[i] as [number, number])]: nexts[i] as [
+                  number,
+                  number,
+                ],
+              }
+            : kingPositions,
         );
         if (maxEats < result[0]) {
           maxEats = result[0];
-          fMaxEatsCell = result[1];
+          fMaxEatsCells = result[1];
+        } else if (maxEats === result[0]) {
+          fMaxEatsCells.push(...result[1]);
         }
       }
-      return [maxEats, fMaxEatsCell];
+      return [maxEats, fMaxEatsCells];
     };
 
     let piecePositionsClone = piecesPositionsRef.current.map((row) => [...row]);
