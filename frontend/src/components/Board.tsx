@@ -9,7 +9,6 @@ import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 import { filterObj, positonToString } from "../utils/helperFunctions";
 //TODO: fix king fake double move
-//TODO: prevent the other piece from play with them when piece is double jump
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
@@ -60,13 +59,12 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }, []);
 
   useEffect(() => {
-    piecesPositionsRef.current = piecesPositions;
     const availablePiecesAndItsCells = getAvailablePiecesAndItsCells();
     const newAvailablePieces = availablePiecesAndItsCells.map(
       ([piece]) => piece,
     );
     setAvailablePieces(() => newAvailablePieces);
-  }, [piecesPositions]);
+  }, [playerTurn]);
 
   function clearBoardSelections() {
     setSelectedPiece(null);
@@ -121,7 +119,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       );
     }
 
-    const newPiecesPositionsState = piecesPositionsRef.current.map((row, i) => {
+    piecesPositionsRef.current = piecesPositionsRef.current.map((row, i) => {
       return row.map((col, j) => {
         return pieceRow === i && pieceCol === j
           ? 0
@@ -134,14 +132,14 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     });
 
     setPiecesPositions(() => {
-      return newPiecesPositionsState;
+      return piecesPositionsRef.current;
     });
 
     const isValidToSwitch = GameMoves.isValidToSwitchPlayer(
       selectedCell,
       selectedPiece,
       playerTurn,
-      newPiecesPositionsState,
+      piecesPositionsRef.current,
       kingPositionsRef.current !== null &&
         kingPositionsRef.current.hasOwnProperty(positonToString(selectedCell)),
     );
@@ -151,9 +149,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     if (isValidToSwitch || pieceToEat === null || isFirstTimeKing) {
       changeTurn();
     } else {
-      setTimeout(() => {
-        pieceClickHandler(cellRow, cellCol);
-      }, 0);
+      pieceClickHandler(cellRow, cellCol, true);
     }
   }
 
@@ -188,7 +184,11 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
-  function pieceClickHandler(rowIndex: number, cellIndex: number) {
+  function pieceClickHandler(
+    rowIndex: number,
+    cellIndex: number,
+    isDoubleJump: boolean = false,
+  ) {
     //this just for the validation , and return [available Pieces To Play,the cell that will give it the max profit (eats)][]
     const availablePiecesAndItsCells = getAvailablePiecesAndItsCells();
     //separate the pieces from the cells
@@ -201,10 +201,11 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     )?.[1];
     //check if the selected piece belong to the player who the turn is his turn, or the selected piece not in the available valid pieces to play with.
     if (
-      piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
-      !newAvailablePieces.some(
-        ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
-      )
+      !isDoubleJump &&
+      (piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
+        !newAvailablePieces.some(
+          ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
+        ))
     ) {
       clearBoardSelections();
       setAvailablePieces(() => newAvailablePieces);
@@ -222,9 +223,11 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     );
 
     setPossibleMoves(() =>
-      movesInfo.eatMoves.length
-        ? newAvailablePiecesCells ?? []
-        : movesInfo.normalMoves,
+      isDoubleJump
+        ? movesInfo.eatMoves
+        : movesInfo.eatMoves.length
+          ? newAvailablePiecesCells ?? []
+          : movesInfo.normalMoves,
     );
 
     setSelectedPiece(() => [rowIndex, cellIndex]);
