@@ -50,6 +50,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
+  const isDoubleJump = useRef<boolean>(false);
 
   useEffect(() => {
     if (!boardRef.current) {
@@ -147,9 +148,11 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     clearBoardSelections();
 
     if (isValidToSwitch || pieceToEat === null || isFirstTimeKing) {
+      isDoubleJump.current = false;
       changeTurn();
     } else {
-      pieceClickHandler(cellRow, cellCol, true);
+      isDoubleJump.current = true;
+      pieceClickHandler(cellRow, cellCol);
     }
   }
 
@@ -184,34 +187,25 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   //i used here piecesPositionsRef insteand of piecesPositions because i need to call pieceClickHandler inside setTimeout.
-  function pieceClickHandler(
-    rowIndex: number,
-    cellIndex: number,
-    isDoubleJump: boolean = false,
-  ) {
+  function pieceClickHandler(rowIndex: number, cellIndex: number) {
     //this just for the validation , and return [available Pieces To Play,the cell that will give it the max profit (eats)][]
     const availablePiecesAndItsCells = getAvailablePiecesAndItsCells();
-    //separate the pieces from the cells
-    const newAvailablePieces = availablePiecesAndItsCells.map(
-      ([piece]) => piece,
-    );
+
     //separate the cells from the pieces then filter them by the curPiece
-    let newAvailablePiecesCells = availablePiecesAndItsCells.find(
+    const selectedPieceCells = availablePiecesAndItsCells.find(
       ([piece]) => piece[0] === rowIndex && piece[1] === cellIndex,
     )?.[1];
-    //check if the selected piece belong to the player who the turn is his turn, or the selected piece not in the available valid pieces to play with.
+
     if (
-      !isDoubleJump &&
-      (piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
-        !newAvailablePieces.some(
-          ([moveRow, moveCol]) => moveRow === rowIndex && moveCol === cellIndex,
-        ))
+      piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
+      (!isDoubleJump.current && !selectedPieceCells)
     ) {
       clearBoardSelections();
-      setAvailablePieces(() => newAvailablePieces);
+      setAvailablePieces(() =>
+        availablePiecesAndItsCells.map(([piece]) => piece),
+      );
       return;
     }
-
     const piecePos: [number, number] = [rowIndex, cellIndex];
 
     const movesInfo = GameMoves.pieceAvailableMoves(
@@ -222,12 +216,16 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         kingPositionsRef.current.hasOwnProperty(positonToString(piecePos)),
     );
 
+    const newPossibleMoves = isDoubleJump.current
+      ? getPicesMaxEats(getEatMoves()).find(
+          ([piece, ,]) => piece[0] === rowIndex && piece[1] === cellIndex,
+        )?.[2]
+      : selectedPieceCells;
+
     setPossibleMoves(() =>
-      isDoubleJump
-        ? movesInfo.eatMoves
-        : movesInfo.eatMoves.length
-          ? newAvailablePiecesCells ?? []
-          : movesInfo.normalMoves,
+      movesInfo.eatMoves.length
+        ? newPossibleMoves ?? []
+        : movesInfo.normalMoves,
     );
 
     setSelectedPiece(() => [rowIndex, cellIndex]);
@@ -303,8 +301,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   function getEatMoveWithMaxEats(pieces: number[][]): [number[], number[][]][] {
     let maxPiecesOrPiece: [number[], number[][]][] = [];
     let maxEats = 0;
-    pieces.forEach((piece) => {
-      const [eats, cells] = getPieceMaxEats(piece);
+    getPicesMaxEats(pieces).forEach(([piece, eats, cells]) => {
       if (eats > maxEats) {
         maxEats = eats;
         maxPiecesOrPiece = [[piece, cells]];
@@ -313,6 +310,14 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       }
     });
     return maxPiecesOrPiece;
+  }
+
+  function getPicesMaxEats(
+    pieces: number[][],
+  ): [number[], number, [number, number][]][] {
+    return pieces.map((piece) => {
+      return [piece, ...getPieceMaxEats(piece)];
+    });
   }
 
   function getPieceMaxEats(piece: number[]): [number, [number, number][]] {
