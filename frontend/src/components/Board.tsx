@@ -50,7 +50,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   } | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const piecesPositionsRef = useRef<(0 | 1 | 2)[][]>(piecesPositions);
-  const isDoubleJump = useRef<boolean>(false);
+  const doubleJumpPiece = useRef<[number, number] | null>(null);
 
   useEffect(() => {
     if (!boardRef.current) {
@@ -148,10 +148,10 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
     clearBoardSelections();
 
     if (isValidToSwitch || pieceToEat === null || isFirstTimeKing) {
-      isDoubleJump.current = false;
+      doubleJumpPiece.current = null;
       changeTurn();
     } else {
-      isDoubleJump.current = true;
+      doubleJumpPiece.current = selectedCell;
       pieceClickHandler(cellRow, cellCol);
     }
   }
@@ -196,9 +196,15 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       ([piece]) => piece[0] === rowIndex && piece[1] === cellIndex,
     )?.[1];
 
+    //check if the selected piece is not belong to the player who current turn is his turn.
+    //not a double jump move and the selected piece not in the valid pieces to play with.
+    //is a valid jump and the selected piece not the current piece that play double jump with.
     if (
       piecesPositionsRef.current[rowIndex][cellIndex] !== playerTurn ||
-      (!isDoubleJump.current && !selectedPieceCells)
+      (!doubleJumpPiece.current && !selectedPieceCells) ||
+      (doubleJumpPiece.current !== null &&
+        (doubleJumpPiece.current[0] !== rowIndex ||
+          doubleJumpPiece.current[1] !== cellIndex))
     ) {
       clearBoardSelections();
       setAvailablePieces(() =>
@@ -206,8 +212,8 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       );
       return;
     }
-    const piecePos: [number, number] = [rowIndex, cellIndex];
 
+    const piecePos: [number, number] = [rowIndex, cellIndex];
     const movesInfo = GameMoves.pieceAvailableMoves(
       piecePos,
       playerTurn,
@@ -216,7 +222,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
         kingPositionsRef.current.hasOwnProperty(positonToString(piecePos)),
     );
 
-    const newPossibleMoves = isDoubleJump.current
+    const newPossibleMoves = doubleJumpPiece.current
       ? getPicesMaxEats(getEatMoves()).find(
           ([piece, ,]) => piece[0] === rowIndex && piece[1] === cellIndex,
         )?.[2]
