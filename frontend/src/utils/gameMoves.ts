@@ -109,6 +109,10 @@ class GameMoves {
       isKing,
     );
 
+    if (eatenPiece === null) {
+      return !eatMovesSize;
+    }
+
     eatMovesSize = eatMoves.filter((eatMove) => {
       const curEatenPiece = GameMoves.getEatenPiece(
         eatMove as [number, number],
@@ -118,9 +122,8 @@ class GameMoves {
       );
       return (
         curEatenPiece === null ||
-        eatenPiece === null ||
-        (curEatenPiece[0] !== eatenPiece[0] &&
-          curEatenPiece[1] !== eatenPiece[1])
+        curEatenPiece[0] !== eatenPiece[0] ||
+        curEatenPiece[1] !== eatenPiece[1]
       );
     }).length;
 

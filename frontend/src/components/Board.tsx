@@ -8,7 +8,7 @@ import Piece from "./Piece";
 import GameMoves from "../utils/gameMoves";
 import MoveMarker from "./MoveMarker";
 import { filterObj, positonToString } from "../utils/helperFunctions";
-//TODO: fix king fake double move
+//TODO: fix king fake double move.
 
 function getPiecesPositions(): (0 | 1 | 2)[][] {
   let board = new Array(NUMBER_OF_ROWS_IN_BOARD).fill(0).map((_, rowIndex) => {
@@ -212,27 +212,15 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       );
       return;
     }
-
-    const piecePos: [number, number] = [rowIndex, cellIndex];
-    const movesInfo = GameMoves.pieceAvailableMoves(
-      piecePos,
-      playerTurn,
-      piecesPositionsRef.current,
-      kingPositionsRef.current !== null &&
-        kingPositionsRef.current.hasOwnProperty(positonToString(piecePos)),
-    );
+    const eatMovesAndItsCells = getPicesMaxEats(getEatMoves());
 
     const newPossibleMoves = doubleJumpPiece.current
-      ? getPicesMaxEats(getEatMoves()).find(
+      ? eatMovesAndItsCells.find(
           ([piece, ,]) => piece[0] === rowIndex && piece[1] === cellIndex,
         )?.[2]
       : selectedPieceCells;
 
-    setPossibleMoves(() =>
-      movesInfo.eatMoves.length
-        ? newPossibleMoves ?? []
-        : movesInfo.normalMoves,
-    );
+    setPossibleMoves(() => newPossibleMoves ?? []);
 
     setSelectedPiece(() => [rowIndex, cellIndex]);
     setAvailablePieces(() => []);
@@ -251,8 +239,8 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
       return getEatMoveWithMaxEats(forceMoves);
     }
 
-    return piecesPositionsRef.current
-      .reduce((prev: number[][], row, rowIndex) => {
+    return piecesPositionsRef.current.reduce(
+      (prev: [number[], number[][]][], row, rowIndex) => {
         return [
           ...prev,
           ...(row
@@ -261,7 +249,7 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
                 return null;
               }
               const piecePos: [number, number] = [rowIndex, colIndex];
-              const movesInfo = GameMoves.pieceAvailableMoves(
+              const { normalMoves } = GameMoves.pieceAvailableMoves(
                 piecePos,
                 playerTurn,
                 piecesPositionsRef.current,
@@ -271,13 +259,13 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
                   ),
               );
 
-              const res = movesInfo.normalMoves.length > 0;
-              return res ? piecePos : null;
+              return normalMoves.length > 0 ? [piecePos, normalMoves] : null;
             })
-            .filter(Boolean) as number[][]),
+            .filter(Boolean) as [number[], number[][]][]),
         ];
-      }, [])
-      .map((piece) => [piece, [[-1, -1]]]);
+      },
+      [],
+    );
   }
 
   function getEatMoves(): number[][] {
@@ -327,7 +315,6 @@ function Board({ playerTurn, setPlayerTurn }: BoardType) {
   }
 
   function getPieceMaxEats(piece: number[]): [number, [number, number][]] {
-    //TODO: handle when piece have multipe cells that gives max profit
     const backtrack = (
       piecesPositions: (0 | 1 | 2)[][],
       cur: [number, number],
