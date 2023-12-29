@@ -11,6 +11,7 @@ class GameMoves {
     const playerOp = pieceValue === 1 ? 2 : 1;
     const M = piecesPositions.length;
     const N = piecesPositions[0].length;
+
     const { eatMoves } = GameMoves.pieceAvailableMoves(
       piecePos,
       pieceValue,
@@ -82,65 +83,18 @@ class GameMoves {
     return eatenPiece;
   }
 
-  public static isValidToSwitchPlayer(
-    piecePos: [number, number],
-    cellPos: [number, number],
-    pieceValue: 0 | 1 | 2,
-    piecesPositions: (0 | 1 | 2)[][],
-    isKing: boolean,
-  ): boolean {
-    const { eatMoves } = GameMoves.pieceAvailableMoves(
-      piecePos,
-      pieceValue,
-      piecesPositions,
-      isKing,
-    );
-
-    let eatMovesSize = eatMoves.length;
-
-    if (!isKing || !eatMovesSize) {
-      return !eatMovesSize;
-    }
-
-    const eatenPiece = GameMoves.getEatenPiece(
-      piecePos,
-      cellPos,
-      piecesPositions,
-      isKing,
-    );
-
-    if (eatenPiece === null) {
-      return !eatMovesSize;
-    }
-
-    eatMovesSize = eatMoves.filter((eatMove) => {
-      const curEatenPiece = GameMoves.getEatenPiece(
-        eatMove as [number, number],
-        piecePos,
-        piecesPositions,
-        isKing,
-      );
-      return (
-        curEatenPiece === null ||
-        curEatenPiece[0] !== eatenPiece[0] ||
-        curEatenPiece[1] !== eatenPiece[1]
-      );
-    }).length;
-
-    return !eatMovesSize;
-  }
-
   public static pieceAvailableMoves(
     piecePos: [number, number],
     pieceValue: 0 | 1 | 2,
     piecesPositions: (0 | 1 | 2)[][],
     isKing: boolean,
+    prevPiecePos: [number, number] | null = null,
   ): { normalMoves: number[][]; eatMoves: number[][] } {
     const M = piecesPositions.length;
     const N = piecesPositions[0].length;
     const [pieceRow, pieceCol] = piecePos;
     const normalMoves: number[][] = [];
-    const eatMoves: number[][] = [];
+    let eatMoves: number[][] = [];
     const playerOp = pieceValue === 1 ? 2 : 1;
     const normalMovesDirs = [
       [1, 1],
@@ -190,6 +144,31 @@ class GameMoves {
             j += c;
             nextPieceRow = piecesPositions[i];
           }
+        }
+      }
+
+      if (prevPiecePos) {
+        const eatenPiece = GameMoves.getEatenPiece(
+          piecePos,
+          prevPiecePos,
+          piecesPositions,
+          isKing,
+        );
+
+        if (eatenPiece !== null) {
+          eatMoves = eatMoves.filter((eatMove) => {
+            const curEatenPiece = GameMoves.getEatenPiece(
+              eatMove as [number, number],
+              piecePos,
+              piecesPositions,
+              isKing,
+            );
+            return (
+              curEatenPiece === null ||
+              curEatenPiece[0] !== eatenPiece[0] ||
+              curEatenPiece[1] !== eatenPiece[1]
+            );
+          });
         }
       }
     } else {

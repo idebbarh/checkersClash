@@ -35,7 +35,8 @@ function Play() {
   const [playerTurn, setPlayerTurn] = useState<1 | 2 | null>(null);
 
   useEffect(() => {
-    setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
+    // setPlayerTurn(() => Math.floor(Math.random() * 2 + 1) as 1 | 2);
+    setPlayerTurn(2);
     const randomName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
     const timer = setTimeout(() => {
       setOpponentData((prevData) => ({
